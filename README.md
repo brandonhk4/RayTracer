@@ -6,5 +6,9 @@ This will be a project that fully implements a Ray Tracer from scratch, followin
 I will be updating this README as I add more features.
 
 Current Features:
-Has some classes
-Has a for loop that implements the basic concept of a ray tracer. Currently, the "scene" is just a sphere over a plane.
+Has some classes <br>
+Has a for loop that implements the basic concept of a ray tracer.
+
+Currently, the "scene" is just a sphere over another sphere.
+
+Have created the "hittable" abstract class to make the "world".

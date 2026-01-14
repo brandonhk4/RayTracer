@@ -1,13 +1,9 @@
 #ifndef COLOR_H
 #define COLOR_H
 
-#include "vec3.h"
+#include "raytracer.h"
 
-#include <iostream>
-
-using color = vec3;
-
-void write_color(std::ostream& out, const color& pixel_color) {
+void write_color(std::ostream& out, const vec3& pixel_color) {
     double r = pixel_color.x;
     double g = pixel_color.y;
     double b = pixel_color.z;
