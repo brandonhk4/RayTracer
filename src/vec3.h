@@ -20,8 +20,8 @@ class vec3 {
 
         vec3& operator+=(const vec3& v) {
             x += v.x;
-            y += v.x;
-            z += v.x;
+            y += v.y;
+            z += v.z;
             return *this;
         }
 
@@ -33,9 +33,9 @@ class vec3 {
         }
 
         vec3& operator*=(double t) {
-            x += t;
-            y += t;
-            z += t;
+            x *= t;
+            y *= t;
+            z *= t;
             return *this;
         }
 
@@ -47,8 +47,7 @@ class vec3 {
         }
 
         vec3& operator/=(double t) {
-            *this *= 1 / t;
-            return *this;
+            return *this *= 1.0 / t;
         }
 
         vec3& operator=(const vec3& v) {
@@ -67,6 +66,14 @@ class vec3 {
         }
 
         vec3 dir() const;
+
+        static vec3 random() {
+            return vec3(random_double(), random_double(), random_double());
+        }
+
+        static vec3 random(double min, double max) {
+            return vec3(random_double(min, max), random_double(min, max), random_double(min, max));
+        }
 };
 
 inline std::ostream& operator<<(std::ostream& out, const vec3& v) {
@@ -109,6 +116,19 @@ inline vec3 cross(const vec3& u, const vec3& v) {
     return vec3(u.y * v.z - u.z * v.y,
                 u.z * v.x - u.z * v.z,
                 u.x * v.y - u.y * v.x);
+}
+
+inline vec3 random_unit_vector() {
+    while (true) {
+        vec3 p = vec3::random(-1, 1);
+        double lensq = p.length_squared();
+        if (lensq > 1e-160 && lensq <= 1) return p / sqrt(lensq);
+    }
+}
+
+inline vec3 random_on_hemisphere(const vec3& normal) {
+    vec3 random_v = random_unit_vector();
+    return (dot(random_v, normal) > 0.0) ? random_v : -random_v;
 }
 
 #endif

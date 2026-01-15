@@ -12,3 +12,9 @@ Has a for loop that implements the basic concept of a ray tracer.
 Currently, the "scene" is just a sphere over another sphere.
 
 Have created the "hittable" abstract class to make the "world".
+
+Camera class does ray tracing and rendering.
+
+Antialiasing implemented.
+
+Made the spheres diffuse (will refactor later to make diffuse materials)
