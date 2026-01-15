@@ -74,7 +74,7 @@ class camera {
         double aspect_ratio = 16.0 / 9.0;
         int image_width = 512;
         int aa_samples = 10;
-        int max_depth = 10;
+        int max_depth = 15;
 
         void render(const hittable& world) {
             initialize();

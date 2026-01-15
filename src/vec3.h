@@ -141,4 +141,12 @@ inline vec3 reflect(const vec3& v, const vec3& n) {
     return v - 2 * dot(v, n) * n;
 }
 
+inline vec3 refract(const vec3& v, const vec3& n, double index_ratio) {
+    // v is directed in opposite direction from n
+    double cos = dot(-v.dir(), n);
+    vec3 r_perp = index_ratio * (v + v.length() * cos * n);
+    vec3 r_para = -std::sqrt(1 - r_perp.length_squared()) * n;
+    return r_perp + r_para;
+}
+
 #endif
