@@ -8,6 +8,7 @@
 #include "external/stb_image_write.h"
 
 #include "hittable.h"
+#include "material.h"
 
 #include <sstream>
 
@@ -51,14 +52,19 @@ class camera {
             return ray(camera_center, ray_dir);
         }
 
-        vec3 ray_color(const ray& r, const hittable& world) const {
+        vec3 ray_color(const ray& r, int depth, const hittable& world) const {
+            if (!depth) return vec3();
+
             hit_record rec;
-            if (world.hit(r, interval(0, infinity), rec)) {
-                vec3 direction = random_on_hemisphere(rec.normal);
-                return 0.5 * ray_color(ray(rec.pt, direction), world);
+
+            if (world.hit(r, interval(0.001, infinity), rec)) {
+                ray scattered;
+                vec3 attenuation;
+                if (rec.mat->scatter(r, rec, attenuation, scattered))
+                    return attenuation * ray_color(scattered, depth - 1, world);
             }
 
-            vec3 unit_dir = r.direction().dir();
+            vec3 unit_dir = r.dir().dir();
             double a = 0.5 * (unit_dir.y + 1.0);
             return (1.0 - a) * vec3(1.0) + a * vec3(0.5, 0.8, 0.8);
         }
@@ -68,6 +74,7 @@ class camera {
         double aspect_ratio = 16.0 / 9.0;
         int image_width = 512;
         int aa_samples = 10;
+        int max_depth = 10;
 
         void render(const hittable& world) {
             initialize();
@@ -79,7 +86,7 @@ class camera {
                     vec3 pixel_color;
                     for (int sample = 0; sample < aa_samples; ++sample) {
                         ray r = get_ray(i, j);
-                        pixel_color += ray_color(r, world) / aa_samples;
+                        pixel_color += ray_color(r, max_depth, world) / aa_samples;
                     }
                     
                     write_color(render_stream, pixel_color);

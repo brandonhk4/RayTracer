@@ -5,19 +5,19 @@
 
 class ray {
     private:
-        vec3 pt;
-        vec3 dir;
+        vec3 point;
+        vec3 direction;
     
     public:
         ray() {}
 
-        ray(const vec3& point, const vec3& direction) : pt(point), dir(direction) {}
+        ray(const vec3& point, const vec3& direction) : point(point), direction(direction) {}
 
-        const vec3& point() const  { return pt; }
-        const vec3& direction() const { return dir; }
+        const vec3& pt() const  { return point; }
+        const vec3& dir() const { return direction; }
 
         vec3 at(double t) const {
-            return pt + t * dir;
+            return point + t * direction;
         }
 };
 

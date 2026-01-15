@@ -17,4 +17,4 @@ Camera class does ray tracing and rendering.
 
 Antialiasing implemented.
 
-Made the spheres diffuse (will refactor later to make diffuse materials)
+Implemented some materials: lambertian, reflective, fuzzy

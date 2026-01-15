@@ -3,10 +3,13 @@
 
 #include "ray.h"
 
+class material;
+
 class hit_record {
     public:
         vec3 pt;
         vec3 normal;
+        shared_ptr<material> mat;
         double t;
 };
 

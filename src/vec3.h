@@ -65,6 +65,11 @@ class vec3 {
             return x*x + y*y + z*z;
         }
 
+        bool near_zero() const {
+            double s = 1e-8;
+            return std::fabs(x) < s && std::fabs(y) < s && std::fabs(z) < s;
+        }
+
         vec3 dir() const;
 
         static vec3 random() {
@@ -129,6 +134,11 @@ inline vec3 random_unit_vector() {
 inline vec3 random_on_hemisphere(const vec3& normal) {
     vec3 random_v = random_unit_vector();
     return (dot(random_v, normal) > 0.0) ? random_v : -random_v;
+}
+
+inline vec3 reflect(const vec3& v, const vec3& n) {
+    // v is directed into the surface, n is directed out
+    return v - 2 * dot(v, n) * n;
 }
 
 #endif
