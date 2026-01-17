@@ -5,8 +5,6 @@
 #include "sphere.h"
 #include "camera.h"
 
-#include <dlfcn.h>
-
 using namespace std;
 
 class InputParser{
