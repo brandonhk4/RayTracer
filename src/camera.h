@@ -1,22 +1,9 @@
 #ifndef CAMERA_H
 #define CAMERA_H
 
-// #ifndef STB_IMAGE_IMPLEMENTATION
-// #define STB_IMAGE_IMPLEMENTATION
-// #include "external/stb_image.h"
-// #endif
-
-// #ifndef STB_IMAGE_WRITE_IMPLEMENTATION
-// #define STB_IMAGE_WRITE_IMPLEMENTATION
-#ifndef STBI_WRITE_NO_STDIO
-#include "external/stb_image_write.h"
-#endif
-// #endif
-
 #include "hittable.h"
 #include "material.h"
 
-#include <sstream>
 #include <string>
 
 using namespace std;
@@ -146,9 +133,8 @@ class camera {
             focus_dist(cf.focus_dist)
         {}
 
-        void render(const hittable& world, string output_file = "image.png") {
+        void render(const hittable& world, vector<uint8_t>& pixels) {
             initialize();
-            ostringstream render_stream;
 
             for (int j = 0; j < image_height; j++) {
                 clog << "\rScanlines remaining: " << (image_height - j) << ' ' << flush;
@@ -159,15 +145,15 @@ class camera {
                         pixel_color += ray_color(r, max_depth, world) / aa_samples;
                     }
                     
-                    write_color(render_stream, pixel_color);
+                    write_color(pixels, pixel_color);
                 }
             }
             clog << "\rDone.                 \n";
-
-            int success = stbi_write_png(output_file.c_str(), image_width, image_height, 3, render_stream.str().c_str(), image_width * 3);
-            if (success) cout << "Successfully created image.png\n";
-            else cout << "Failed to write image\n";
         }
+
+        int width() const { return image_width; }
+
+        int height() const { return image_height; }
 };
 
 #endif

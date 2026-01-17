@@ -104,8 +104,8 @@ int main(int argc, char** argv) {
 
     camera cam(configure(input));
 
-    string output_file = input.getCmdOption("--f");
-    if (output_file.empty()) output_file = "image.png";
+    string output_file = input.getCmdOption("--out");
+    bool save = !output_file.empty();
 
     cam.image_width = 600;
     cam.aa_samples = 50;
@@ -164,12 +164,20 @@ int main(int argc, char** argv) {
     world.add(make_shared<sphere>(vec3(4, 1, 0), 1, di_mat));
     world.add(make_shared<sphere>(vec3(4, 1, 0), .9, bubble_mat));
 
-    // cam.render(world, output_file);
+    vector<uint8_t> pixels;
+    pixels.reserve(cam.width() * cam.height() * 4);
+    cam.render(world, pixels);
 
-    sf::RenderWindow window(sf::VideoMode({ (unsigned int)cam.image_width, (unsigned int)(cam.image_width / cam.aspect_ratio) }), "RayTracer", sf::Style::Default, sf::State::Windowed);
+    sf::RenderWindow window(sf::VideoMode({ (unsigned int)cam.width(), (unsigned int)cam.height() }), "RayTracer", sf::Style::Default, sf::State::Windowed);
 
-    sf::Texture texture(output_file);
-    // if (!texture.loadFromFile(output_file)) cout << "file reading error\n";
+    sf::Image image({(unsigned int)cam.width(), (unsigned int)cam.height()}, pixels.data());
+    if (save) {
+        bool success =image.saveToFile(output_file);
+        if (success) cout << "Successfully created image.png\n";
+        else cout << "Failed to write image\n";
+    }
+
+    sf::Texture texture(image);
 
     sf::Sprite sprite(texture);
 
