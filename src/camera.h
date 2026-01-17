@@ -1,11 +1,17 @@
 #ifndef CAMERA_H
 #define CAMERA_H
 
-#define STB_IMAGE_IMPLEMENTATION
-#include "external/stb_image.h"
+// #ifndef STB_IMAGE_IMPLEMENTATION
+// #define STB_IMAGE_IMPLEMENTATION
+// #include "external/stb_image.h"
+// #endif
 
-#define STB_IMAGE_WRITE_IMPLEMENTATION
+// #ifndef STB_IMAGE_WRITE_IMPLEMENTATION
+// #define STB_IMAGE_WRITE_IMPLEMENTATION
+#ifndef STBI_WRITE_NO_STDIO
 #include "external/stb_image_write.h"
+#endif
+// #endif
 
 #include "hittable.h"
 #include "material.h"
