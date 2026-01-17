@@ -11,8 +11,29 @@
 #include "material.h"
 
 #include <sstream>
+#include <string>
 
 using namespace std;
+
+struct config {
+    // Screen config
+    double aspect_ratio = 16.0 / 9.0;   // Ratio of image width over height
+    int image_width = 512;              // Rendered image width in pixel count
+
+    // Render config
+    int aa_samples = 10;                // Count of random samples for each pixel for antialiasing
+    int max_depth = 8;                 // Maximum number of ray bounce recursions
+    
+    // Camera config
+    double vfov = 90;                   // Vertical view angle (field of view)
+    vec3 pos;                           // Point camera is at
+    vec3 target = vec3(0, 0, -1);       // Point camera is looking at
+    vec3 vup = vec3(0, 1, 0);           // Camera "up" direction. Change to roll camera.
+
+    // Lens config
+    double defocus_angle = 0;           // Variation angle of rays through each pixel
+    double focus_dist = 0;              // Distance from camera lens to plane of perfect focus
+};
 
 class camera {
     private:
@@ -27,13 +48,13 @@ class camera {
         void initialize() {
             image_height = max(int(image_width / aspect_ratio), 1);
 
-            forward = (lookat - pos).dir();
+            forward = (target - pos).dir();
             right = cross(forward, vup.dir()).dir();
             up = cross(right, forward);
 
             // Viewport dimensions
-            if (focus_dist == 0) focus_dist = (lookat - pos).length();
-            double h = std::tan(degrees_to_radians(vfov) / 2);
+            if (focus_dist == 0) focus_dist = (target - pos).length();
+            double h = tan(degrees_to_radians(vfov) / 2);
             double viewport_height = 2.0 * h * focus_dist;
             double viewport_width = viewport_height * (double(image_width) / image_height);
 
@@ -47,7 +68,7 @@ class camera {
                                     viewport_u / 2 - viewport_v / 2;
             pixel_center00 = viewport_upper_left + 0.5 * (pixel_delta_u + pixel_delta_v);
 
-            double defocus_radius = focus_dist * std::tan(degrees_to_radians(defocus_angle) / 2);
+            double defocus_radius = focus_dist * tan(degrees_to_radians(defocus_angle) / 2);
             defocus_disk_u = defocus_radius * right;
             defocus_disk_v = defocus_radius * up;
         }
@@ -88,23 +109,38 @@ class camera {
         }
 
     public:
+        // Screen config
+        double aspect_ratio;                // Ratio of image width over height
+        int image_width;                    // Rendered image width in pixel count
+
         // Render config
-        double aspect_ratio = 16.0 / 9.0;   // Ratio of image width over height
-        int image_width = 512;              // Rendered image width in pixel count
-        int aa_samples = 10;                // Count of random samples for each pixel for antialiasing
-        int max_depth = 15;                 // Maximum number of ray bounce recursions
+        int aa_samples;                     // Count of random samples for each pixel for antialiasing
+        int max_depth;                      // Maximum number of ray bounce recursions
         
         // Camera config
-        double vfov = 90;                   // Vertical view angle (field of view)
+        double vfov;                        // Vertical view angle (field of view)
         vec3 pos;                           // Point camera is at
-        vec3 lookat = vec3(0, 0, -1);       // Point camera is looking at
-        vec3 vup = vec3(0, 1, 0);           // Camera "up" direction. Change to roll camera.
+        vec3 target;                        // Point camera is looking at
+        vec3 vup;                           // Camera "up" direction. Change to roll camera.
 
         // Lens config
-        double defocus_angle = 0;           // Variation angle of rays through each pixel
-        double focus_dist = 0;              // Distance from camera lens to plane of perfect focus
+        double defocus_angle;               // Variation angle of rays through each pixel
+        double focus_dist;                  // Distance from camera lens to plane of perfect focus
 
-        void render(const hittable& world) {
+        camera(struct config cf) : 
+            aspect_ratio(cf.aspect_ratio),
+            image_width(cf.image_width),
+            aa_samples(cf.aa_samples),
+            max_depth(cf.max_depth),
+            vfov(cf.vfov),
+            pos(cf.pos),
+            target(cf.target),
+            vup(cf.vup),
+            defocus_angle(cf.defocus_angle),
+            focus_dist(cf.focus_dist)
+        {}
+
+        void render(const hittable& world, string output_file = "image.png") {
             initialize();
             ostringstream render_stream;
 
@@ -122,11 +158,10 @@ class camera {
             }
             clog << "\rDone.                 \n";
 
-            int success = stbi_write_png("image.png", image_width, image_height, 3, render_stream.str().c_str(), image_width * 3);
+            int success = stbi_write_png(output_file.c_str(), image_width, image_height, 3, render_stream.str().c_str(), image_width * 3);
             if (success) cout << "Successfully created image.png\n";
             else cout << "Failed to write image\n";
         }
-
 };
 
 #endif

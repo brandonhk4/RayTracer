@@ -3,6 +3,11 @@
 
 #include "raytracer.h"
 
+#include <string>
+#include <regex>
+#include <iostream>
+#include <sstream>
+
 class vec3 {
     public:
         union {
@@ -79,6 +84,23 @@ class vec3 {
         static vec3 random(double min, double max) {
             return vec3(random_double(min, max), random_double(min, max), random_double(min, max));
         }
+
+        static vec3 stov(std::string str) {
+        vec3 out;
+        static std::regex re(
+            "^\\(\\s*(-?\\d+(\\.\\d+)?)\\s*,\\s*(-?\\d+(\\.\\d+)?)\\s*,\\s*(-?\\d+(\\.\\d+)?)\\s*\\)$"
+        );
+        if (std::regex_match(str, re)) {
+            str.erase(0, 1);
+            str.pop_back();
+
+            std::stringstream ss(str);
+            char comma;
+            
+            ss >> out.x >> comma >> out.y >> comma >> out.z;
+        }
+        return out;
+    }
 };
 
 inline std::ostream& operator<<(std::ostream& out, const vec3& v) {
