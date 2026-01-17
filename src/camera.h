@@ -16,30 +16,45 @@ using namespace std;
 
 class camera {
     private:
-        int image_height;
-        vec3 camera_center;
-        vec3 pixel_center00;
-        vec3 pixel_delta_u;
-        vec3 pixel_delta_v;
+        int image_height;           // Rendered image height
+        vec3 pixel_center00;        // Location of pixel (0,0)
+        vec3 pixel_delta_u;         // Horizontal offset of pixel
+        vec3 pixel_delta_v;         // Vertical offset of pixel
+        vec3 forward, right, up;    // Camera frame basis vectors
+        vec3 defocus_disk_u;        // Horizontal disk radius
+        vec3 defocus_disk_v;        // Vertial disk radius
         
         void initialize() {
             image_height = max(int(image_width / aspect_ratio), 1);
-        
-            vec3 camera_center;
 
-            double viewport_height = 2.0;
-            double viewport_width = viewport_height * double(image_width) / image_height;
-            double focal_length = 1.0;
+            forward = (lookat - pos).dir();
+            right = cross(forward, vup.dir()).dir();
+            up = cross(right, forward);
 
-            vec3 viewport_u = vec3(viewport_width, 0, 0);
-            vec3 viewport_v = vec3(0, -viewport_height, 0);
+            // Viewport dimensions
+            if (focus_dist == 0) focus_dist = (lookat - pos).length();
+            double h = std::tan(degrees_to_radians(vfov) / 2);
+            double viewport_height = 2.0 * h * focus_dist;
+            double viewport_width = viewport_height * (double(image_width) / image_height);
+
+            vec3 viewport_u = viewport_width * right;
+            vec3 viewport_v = viewport_height * -up;
             
             pixel_delta_u = viewport_u / image_width;
             pixel_delta_v = viewport_v / image_height;
 
-            vec3 viewport_upper_left = camera_center - vec3(0, 0, focal_length) -
+            vec3 viewport_upper_left = pos + focus_dist * forward -
                                     viewport_u / 2 - viewport_v / 2;
             pixel_center00 = viewport_upper_left + 0.5 * (pixel_delta_u + pixel_delta_v);
+
+            double defocus_radius = focus_dist * std::tan(degrees_to_radians(defocus_angle) / 2);
+            defocus_disk_u = defocus_radius * right;
+            defocus_disk_v = defocus_radius * up;
+        }
+
+        vec3 defocus_disk_sample() const {
+            vec3 p = random_in_unit_disk();
+            return pos + p.x * defocus_disk_u + p.y * defocus_disk_v;
         }
 
         ray get_ray(int i, int j) const{
@@ -47,9 +62,12 @@ class camera {
             vec3 pixel_sample = pixel_center00 + 
                                 ((i + offset.x) * pixel_delta_u) + 
                                 ((j + offset.y) * pixel_delta_v);
-            vec3 ray_dir = pixel_sample - camera_center;
 
-            return ray(camera_center, ray_dir);
+            vec3 ray_pos = (defocus_angle <= 0) ? pos : defocus_disk_sample();
+
+            vec3 ray_dir = pixel_sample - ray_pos;
+
+            return ray(ray_pos, ray_dir);
         }
 
         vec3 ray_color(const ray& r, int depth, const hittable& world) const {
@@ -70,11 +88,21 @@ class camera {
         }
 
     public:
-        // Image
-        double aspect_ratio = 16.0 / 9.0;
-        int image_width = 512;
-        int aa_samples = 10;
-        int max_depth = 15;
+        // Render config
+        double aspect_ratio = 16.0 / 9.0;   // Ratio of image width over height
+        int image_width = 512;              // Rendered image width in pixel count
+        int aa_samples = 10;                // Count of random samples for each pixel for antialiasing
+        int max_depth = 15;                 // Maximum number of ray bounce recursions
+        
+        // Camera config
+        double vfov = 90;                   // Vertical view angle (field of view)
+        vec3 pos;                           // Point camera is at
+        vec3 lookat = vec3(0, 0, -1);       // Point camera is looking at
+        vec3 vup = vec3(0, 1, 0);           // Camera "up" direction. Change to roll camera.
+
+        // Lens config
+        double defocus_angle = 0;           // Variation angle of rays through each pixel
+        double focus_dist = 0;              // Distance from camera lens to plane of perfect focus
 
         void render(const hittable& world) {
             initialize();

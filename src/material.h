@@ -59,13 +59,21 @@ class fuzzy : public reflective {
         }
 };
 
-class dielectric : public reflective {
+class dielectric : public material {
     private:
+        vec3 albedo;
         double refract_index;
+
+        static double reflectance(double cos, double refract_index) {
+            // Schlick's approximation for reflectance
+            double r0 = (1 - refract_index) / (1 + refract_index);
+            r0 *= r0;
+            return r0 + (1 - r0) * std::pow((1 - cos), 5);
+        }
 
     public:
         dielectric(const vec3& albedo, double refract_index) :
-                   reflective(albedo), refract_index(refract_index) {}
+                   albedo(albedo), refract_index(refract_index) {}
         
         bool scatter(const ray& r_in, const hit_record& rec, vec3& attenuation, ray& scattered) const override {
             attenuation = albedo;
@@ -76,22 +84,23 @@ class dielectric : public reflective {
                 ri = refract_index;
             }
 
-            // vec3 refracted = refract(r_in.dir(), normal, ri);
-
-            // scattered = ray(rec.pt, refracted);
-            // return true;
-
             vec3 unit_dir = r_in.dir().dir();
-            double cos = dot(unit_dir, normal);
+            double cos = dot(-unit_dir, normal);
             double sin = std::sqrt(1.0 - cos * cos);
 
             bool cannot_refract = ri * sin > 1.0;
             vec3 direction;
-
-            if (cannot_refract) direction = reflect(unit_dir, normal);
-            else direction = refract(unit_dir, normal, ri);
-
-            scattered = ray(rec.pt, direction);
+            vec3 position;
+            if (cannot_refract || reflectance(cos, ri) > random_double()) {
+                 direction = reflect(unit_dir, normal);
+                 position = rec.pt + 0.001 * normal;
+            }
+            else {
+                direction = refract(unit_dir, normal, ri);
+                position = rec.pt - 0.001 * normal;
+            }
+            
+            scattered = ray(position, direction);
             return true;
         }
 };

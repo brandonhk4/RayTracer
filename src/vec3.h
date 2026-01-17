@@ -119,7 +119,7 @@ inline double dot(const vec3& u, const vec3& v) {
 
 inline vec3 cross(const vec3& u, const vec3& v) {
     return vec3(u.y * v.z - u.z * v.y,
-                u.z * v.x - u.z * v.z,
+                u.z * v.x - u.x * v.z,
                 u.x * v.y - u.y * v.x);
 }
 
@@ -134,6 +134,13 @@ inline vec3 random_unit_vector() {
 inline vec3 random_on_hemisphere(const vec3& normal) {
     vec3 random_v = random_unit_vector();
     return (dot(random_v, normal) > 0.0) ? random_v : -random_v;
+}
+
+inline vec3 random_in_unit_disk() {
+    while (true) {
+        vec3 p = vec3(random_double(-1, 1), random_double(-1, 1), 0);
+        if (p.length_squared() < 1) return p;
+    }
 }
 
 inline vec3 reflect(const vec3& v, const vec3& n) {

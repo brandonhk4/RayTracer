@@ -3,18 +3,12 @@
 This will be a project that fully implements a Ray Tracer from scratch, following the steps in Peter Shirley's "[Ray Tracing in One Weekend](https://raytracing.github.io/books/RayTracingInOneWeekend.html)" Series.
 <br>
 
-I will be updating this README as I add more features.
+I will be updating this README as I add more features.<br>
 
-Current Features:
-Has some classes <br>
-Has a for loop that implements the basic concept of a ray tracer.
+Current Features:<br>
+Has a for loop that implements the basic concept of a ray tracer.<br>
 
-Currently, the "scene" is just a sphere over another sphere.
+Camera configs for position, orientation, antialiasing, lens focus blurring<br>
 
-Have created the "hittable" abstract class to make the "world".
+Materials: lambertian, reflective, fuzzy (fuzzier reflections), dielectric<br>
 
-Camera class does ray tracing and rendering.
-
-Antialiasing implemented.
-
-Implemented some materials: lambertian, reflective, fuzzy
