@@ -1,5 +1,7 @@
 #include <SFML/Graphics.hpp>
 
+#include "OpenCLHelper.h"
+
 #include "raytracer.h"
 #include "hittable.h"
 #include "hittable_list.h"
@@ -95,102 +97,122 @@ config configure(const InputParser& input) {
 }
 
 int main(int argc, char** argv) {
-    InputParser input(argc, argv);
+    OpenCLHelper gpu;
 
-    if (input.cmdOptionExists("-h")) {
-        InputParser::helpMessage();
-        return -1;
-    }
+    // Later, make these global variables because heap has way more space than stack
+    int A_h[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+    // int B_h[] = { 10, 9, 8, 7, 6, 5, 4, 3, 2, 1 };
+    // int C_h[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+    int D_h[10];
 
-    camera cam(configure(input));
+    auto A_d = gpu.make_buffer(A_h, 10, CL_MEM_READ_ONLY);
+    auto D_d = gpu.make_buffer(D_h, 10, CL_MEM_WRITE_ONLY);
 
-    string output_file = input.getCmdOption("--out");
-    bool save = !output_file.empty();
+    // in "get_global_id( 0 )", the 0 is referring to dimension index. 0 = X, 1 = Y, 2 = Z)
 
-    cam.image_width = 600;
-    cam.aa_samples = 50;
-    cam.max_depth = 16;
+    gpu.run("fibonacci", 10, A_d, D_d);
 
-    cam.vfov = 20;
-    cam.pos = vec3(13, 2, 3);
-    cam.target = vec3();
+    gpu.read(D_d, D_h, 10);
+
+    for (int i = 0; i < 10; ++i) { cout << D_h[i] << " ";}
+    cout << '\n';
+
+    // InputParser input(argc, argv);
+
+    // if (input.cmdOptionExists("-h")) {
+    //     InputParser::helpMessage();
+    //     return -1;
+    // }
+
+    // camera cam(configure(input));
+
+    // string output_file = input.getCmdOption("--out");
+    // bool save = !output_file.empty();
+
+    // cam.image_width = 600;
+    // cam.aa_samples = 50;
+    // cam.max_depth = 16;
+
+    // cam.vfov = 20;
+    // cam.pos = vec3(13, 2, 3);
+    // cam.target = vec3();
     
-    cam.defocus_angle = 0.6;
-    cam.focus_dist = 10.0;
+    // cam.defocus_angle = 0.6;
+    // cam.focus_dist = 10.0;
 
-    // World
-    hittable_list world;
+    // // World
+    // hittable_list world;
 
-    shared_ptr<lambertian> ground_mat = make_shared<lambertian>(vec3(0.5, 0.5, 0.5));
-    world.add(make_shared<sphere>(vec3(0, -1000, 0), 1000, ground_mat));
+    // shared_ptr<lambertian> ground_mat = make_shared<lambertian>(vec3(0.5, 0.5, 0.5));
+    // world.add(make_shared<sphere>(vec3(0, -1000, 0), 1000, ground_mat));
 
-    for (int a = -10; a < 10; ++a) {
-        for (int b = -10; b < 10; ++b) {
-            double choose_mat = random_double();
-            vec3 center = vec3(a + 0.9 * random_double(), 0.2, b + 0.9 * random_double());
+    // for (int a = -10; a < 10; ++a) {
+    //     for (int b = -10; b < 10; ++b) {
+    //         double choose_mat = random_double();
+    //         vec3 center = vec3(a + 0.9 * random_double(), 0.2, b + 0.9 * random_double());
 
-            if ((center - vec3(4, 0.2, 0)).length() > 0.9) {
-                shared_ptr<material> sphere_mat;
+    //         if ((center - vec3(4, 0.2, 0)).length() > 0.9) {
+    //             shared_ptr<material> sphere_mat;
 
-                if (choose_mat < 0.8) {
-                    // diffuse
-                    vec3 albedo = vec3::random();
-                    sphere_mat = make_shared<lambertian>(albedo);
-                    world.add(make_shared<sphere>(center, 0.2, sphere_mat));
-                } else if (choose_mat < 0.95) {
-                    // reflective
-                    vec3 albedo = vec3::random();
-                    double fuzz = random_double(0, 0.5);
-                    sphere_mat = make_shared<fuzzy>(albedo, fuzz);
-                    world.add(make_shared<sphere>(center, 0.2, sphere_mat));
-                } else {
-                    // glass
-                    vec3 albedo = vec3::random(0.8, 1.0);
-                    sphere_mat = make_shared<dielectric>(albedo, 1.5);
-                    world.add(make_shared<sphere>(center, 0.2, sphere_mat));
-                }
-            }
-        }
-    }
+    //             if (choose_mat < 0.8) {
+    //                 // diffuse
+    //                 vec3 albedo = vec3::random();
+    //                 sphere_mat = make_shared<lambertian>(albedo);
+    //                 world.add(make_shared<sphere>(center, 0.2, sphere_mat));
+    //             } else if (choose_mat < 0.95) {
+    //                 // reflective
+    //                 vec3 albedo = vec3::random();
+    //                 double fuzz = random_double(0, 0.5);
+    //                 sphere_mat = make_shared<fuzzy>(albedo, fuzz);
+    //                 world.add(make_shared<sphere>(center, 0.2, sphere_mat));
+    //             } else {
+    //                 // glass
+    //                 vec3 albedo = vec3::random(0.8, 1.0);
+    //                 sphere_mat = make_shared<dielectric>(albedo, 1.5);
+    //                 world.add(make_shared<sphere>(center, 0.2, sphere_mat));
+    //             }
+    //         }
+    //     }
+    // }
 
-    shared_ptr<lambertian> matte_mat = make_shared<lambertian>(vec3(0.4, 0.6, 0.4));
-    world.add(make_shared<sphere>(vec3(-4, 1, 0), 1, matte_mat));
+    // shared_ptr<lambertian> matte_mat = make_shared<lambertian>(vec3(0.4, 0.6, 0.4));
+    // world.add(make_shared<sphere>(vec3(-4, 1, 0), 1, matte_mat));
     
-    shared_ptr<reflective> reflect_mat = make_shared<reflective>(vec3(0.3, 0.3, 0.3));
-    world.add(make_shared<sphere>(vec3(0, 1, 0), 1, reflect_mat));
+    // shared_ptr<reflective> reflect_mat = make_shared<reflective>(vec3(0.3, 0.3, 0.3));
+    // world.add(make_shared<sphere>(vec3(0, 1, 0), 1, reflect_mat));
 
-    shared_ptr<dielectric> di_mat = make_shared<dielectric>(vec3(1.0), 1.5);
-    shared_ptr<dielectric> bubble_mat = make_shared<dielectric>(vec3(1.0), 1.0 / 1.5);
-    world.add(make_shared<sphere>(vec3(4, 1, 0), 1, di_mat));
-    world.add(make_shared<sphere>(vec3(4, 1, 0), .9, bubble_mat));
+    // shared_ptr<dielectric> di_mat = make_shared<dielectric>(vec3(1.0), 1.5);
+    // shared_ptr<dielectric> bubble_mat = make_shared<dielectric>(vec3(1.0), 1.0 / 1.5);
+    // world.add(make_shared<sphere>(vec3(4, 1, 0), 1, di_mat));
+    // world.add(make_shared<sphere>(vec3(4, 1, 0), .9, bubble_mat));
 
-    vector<uint8_t> pixels;
-    pixels.reserve(cam.width() * cam.height() * 4);
-    cam.render(world, pixels);
+    // vector<uint8_t> pixels;
+    // pixels.reserve(cam.width() * cam.height() * 4);
+    // cam.render(world, pixels);
 
-    sf::RenderWindow window(sf::VideoMode({ (unsigned int)cam.width(), (unsigned int)cam.height() }), "RayTracer", sf::Style::Default, sf::State::Windowed);
+    // sf::RenderWindow window(sf::VideoMode({ (unsigned int)cam.width(), (unsigned int)cam.height() }), "RayTracer", sf::Style::Default, sf::State::Windowed);
 
-    sf::Image image({(unsigned int)cam.width(), (unsigned int)cam.height()}, pixels.data());
-    if (save) {
-        bool success =image.saveToFile(output_file);
-        if (success) cout << "Successfully created image.png\n";
-        else cout << "Failed to write image\n";
-    }
+    // sf::Image image({(unsigned int)cam.width(), (unsigned int)cam.height()}, pixels.data());
+    // if (save) {
+    //     bool success =image.saveToFile(output_file);
+    //     if (success) cout << "Successfully created image.png\n";
+    //     else cout << "Failed to write image\n";
+    // }
 
-    sf::Texture texture(image);
+    // sf::Texture texture(image);
 
-    sf::Sprite sprite(texture);
+    // sf::Sprite sprite(texture);
 
-    window.draw(sprite);
-    window.display();
-    while (window.isOpen())
-    {
-        // check all the window's events that were triggered since the last iteration of the loop
-        while (const std::optional event = window.pollEvent())
-        {
-            // "close requested" event: we close the window
-            if (event->is<sf::Event::Closed>())
-                window.close();
-        }
-    }
+    // window.draw(sprite);
+    // window.display();
+    // while (window.isOpen())
+    // {
+    //     // check all the window's events that were triggered since the last iteration of the loop
+    //     while (const std::optional event = window.pollEvent())
+    //     {
+    //         // "close requested" event: we close the window
+    //         if (event->is<sf::Event::Closed>())
+    //             window.close();
+    //     }
+    // }
 }
