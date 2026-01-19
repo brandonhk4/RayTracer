@@ -10,7 +10,7 @@ using namespace std;
 
 struct config {
     // Screen config
-    double aspect_ratio = 16.0 / 9.0;   // Ratio of image width over height
+    float aspect_ratio = 16.0 / 9.0;   // Ratio of image width over height
     int image_width = 512;              // Rendered image width in pixel count
 
     // Render config
@@ -18,14 +18,14 @@ struct config {
     int max_depth = 8;                 // Maximum number of ray bounce recursions
     
     // Camera config
-    double vfov = 90;                   // Vertical view angle (field of view)
+    float vfov = 90;                   // Vertical view angle (field of view)
     vec3 pos;                           // Point camera is at
     vec3 target = vec3(0, 0, -1);       // Point camera is looking at
     vec3 vup = vec3(0, 1, 0);           // Camera "up" direction. Change to roll camera.
 
     // Lens config
-    double defocus_angle = 0;           // Variation angle of rays through each pixel
-    double focus_dist = 0;              // Distance from camera lens to plane of perfect focus
+    float defocus_angle = 0;           // Variation angle of rays through each pixel
+    float focus_dist = 0;              // Distance from camera lens to plane of perfect focus
 };
 
 class camera {
@@ -47,9 +47,9 @@ class camera {
 
             // Viewport dimensions
             if (focus_dist == 0) focus_dist = (target - pos).length();
-            double h = tan(degrees_to_radians(vfov) / 2);
-            double viewport_height = 2.0 * h * focus_dist;
-            double viewport_width = viewport_height * (double(image_width) / image_height);
+            float h = tan(degrees_to_radians(vfov) / 2);
+            float viewport_height = 2.0 * h * focus_dist;
+            float viewport_width = viewport_height * (float(image_width) / image_height);
 
             vec3 viewport_u = viewport_width * right;
             vec3 viewport_v = viewport_height * -up;
@@ -61,7 +61,7 @@ class camera {
                                     viewport_u / 2 - viewport_v / 2;
             pixel_center00 = viewport_upper_left + 0.5 * (pixel_delta_u + pixel_delta_v);
 
-            double defocus_radius = focus_dist * tan(degrees_to_radians(defocus_angle) / 2);
+            float defocus_radius = focus_dist * tan(degrees_to_radians(defocus_angle) / 2);
             defocus_disk_u = defocus_radius * right;
             defocus_disk_v = defocus_radius * up;
         }
@@ -72,7 +72,7 @@ class camera {
         }
 
         ray get_ray(int i, int j) const{
-            vec3 offset = vec3(random_double() - 0.5, random_double() - 0.5, 0);
+            vec3 offset = vec3(random_float() - 0.5, random_float() - 0.5, 0);
             vec3 pixel_sample = pixel_center00 + 
                                 ((i + offset.x) * pixel_delta_u) + 
                                 ((j + offset.y) * pixel_delta_v);
@@ -97,13 +97,13 @@ class camera {
             }
 
             vec3 unit_dir = r.dir().dir();
-            double a = 0.5 * (unit_dir.y + 1.0);
+            float a = 0.5 * (unit_dir.y + 1.0);
             return (1.0 - a) * vec3(1.0) + a * vec3(0.5, 0.8, 0.8);
         }
 
     public:
         // Screen config
-        double aspect_ratio;                // Ratio of image width over height
+        float aspect_ratio;                // Ratio of image width over height
         int image_width;                    // Rendered image width in pixel count
 
         // Render config
@@ -111,14 +111,14 @@ class camera {
         int max_depth;                      // Maximum number of ray bounce recursions
         
         // Camera config
-        double vfov;                        // Vertical view angle (field of view)
+        float vfov;                        // Vertical view angle (field of view)
         vec3 pos;                           // Point camera is at
         vec3 target;                        // Point camera is looking at
         vec3 vup;                           // Camera "up" direction. Change to roll camera.
 
         // Lens config
-        double defocus_angle;               // Variation angle of rays through each pixel
-        double focus_dist;                  // Distance from camera lens to plane of perfect focus
+        float defocus_angle;               // Variation angle of rays through each pixel
+        float focus_dist;                  // Distance from camera lens to plane of perfect focus
 
         camera(struct config cf) : 
             aspect_ratio(cf.aspect_ratio),
@@ -131,11 +131,9 @@ class camera {
             vup(cf.vup),
             defocus_angle(cf.defocus_angle),
             focus_dist(cf.focus_dist)
-        {}
+        {initialize();}
 
         void render(const hittable& world, vector<uint8_t>& pixels) {
-            initialize();
-
             for (int j = 0; j < image_height; j++) {
                 clog << "\rScanlines remaining: " << (image_height - j) << ' ' << flush;
                 for (int i = 0; i < image_width; i++) {
@@ -150,10 +148,29 @@ class camera {
             }
             clog << "\rDone.                 \n";
         }
+        //move this to gpu later
+        void generate_rays(float pts[], float dirs[]) {
+            for (int j = 0; j < image_height; j++) {
+                for (int i = 0; i < image_width; i++) {
+                    vec3 pixel_color;
+                    for (int sample = 0; sample < aa_samples; ++sample) {
+                        ray r = get_ray(i, j);
+                        pts[sample * image_height * image_width * 4 + j * image_width * 4 + i * 4] = r.pt().x;
+                        pts[sample * image_height * image_width * 4 + j * image_width * 4 + i * 4 + 1] = r.pt().y;
+                        pts[sample * image_height * image_width * 4 + j * image_width * 4 + i * 4 + 2] = r.pt().z;
+                        pts[sample * image_height * image_width * 4 + j * image_width * 4 + i * 4 + 3] = 0;
+                        dirs[sample * image_height * image_width * 4 + j * image_width * 4 + i * 4] = r.dir().x;
+                        dirs[sample * image_height * image_width * 4 + j * image_width * 4 + i * 4 + 1] = r.dir().y;
+                        dirs[sample * image_height * image_width * 4 + j * image_width * 4 + i * 4 + 2] = r.dir().z;
+                        dirs[sample * image_height * image_width * 4 + j * image_width * 4 + i * 4 + 3] = 0;
+                    }
+                }
+            }
+        }
 
-        int width() const { return image_width; }
+        const int width() const { return image_width; }
 
-        int height() const { return image_height; }
+        const int height() const { return image_height; }
 };
 
 #endif

@@ -7,24 +7,24 @@
 class sphere : public hittable {
     private:
         const vec3 center;    
-        const double radius;
+        const float radius;
         shared_ptr<material> mat;
 
     public:    
-        sphere(const vec3& cen, double rad, shared_ptr<material> mat) : 
+        sphere(const vec3& cen, float rad, shared_ptr<material> mat) : 
             center(cen), radius(std::fmax(0, rad)), mat(mat) {}
 
         bool hit(const ray& r, interval ray_t, hit_record& rec) const override {
             vec3 oc = center - r.pt();
-            double a = r.dir().length_squared();
-            double h = dot(r.dir(), oc);
-            double c = oc.length_squared() - radius * radius;
+            float a = r.dir().length_squared();
+            float h = dot(r.dir(), oc);
+            float c = oc.length_squared() - radius * radius;
 
-            double discriminant = h * h - a * c;
+            float discriminant = h * h - a * c;
             if (discriminant < 0) return false;
             
-            double sqrtd = std::sqrt(discriminant);
-            double root = (h - sqrtd) / a;
+            float sqrtd = std::sqrt(discriminant);
+            float root = (h - sqrtd) / a;
             
             if (!ray_t.surrounds(root)) {
                 root = (h + sqrtd) / a;

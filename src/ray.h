@@ -16,7 +16,7 @@ class ray {
         const vec3& pt() const  { return point; }
         const vec3& dir() const { return direction; }
 
-        vec3 at(double t) const {
+        vec3 at(float t) const {
             return point + t * direction;
         }
 };

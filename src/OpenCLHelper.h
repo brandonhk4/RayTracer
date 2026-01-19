@@ -63,23 +63,114 @@ class OpenCLHelper {
 
         template<typename T>
         cl::Buffer make_buffer(T in[], int size, cl_mem_flags flags) {
-            cl::Buffer out(context, flags, sizeof(T) * size);
+            cl::Buffer out(
+                context,
+                flags,
+                sizeof(T) * size
+            );
             if (flags != CL_MEM_WRITE_ONLY) {
             queue.enqueueWriteBuffer(out, CL_TRUE, 0, sizeof(T) * size, in);
             }
             return out;
         }
 
+        template<typename T>
+        cl::Image2D make_image(T in[], int width, int height, cl_mem_flags flags) {
+            cl::Image2D out(
+                context,
+                flags,
+                cl::ImageFormat(CL_RGBA, CL_FLOAT),
+                width,
+                height,
+                sizeof(T) * width * 4,
+                in
+            );
+            return out;
+        }
+
+        template<typename T>
+        cl::Image2DArray make_image(T in[], int width, int height, int depth, cl_mem_flags flags) {
+            cl::Image2DArray out(
+                context,
+                flags,
+                cl::ImageFormat(CL_RGBA, CL_FLOAT),
+                depth,
+                width,
+                height,
+                0,
+                0,
+                in
+            );
+            return out;
+        }
+
         template<typename... Args>
         void run(std::string function, int size, Args... args) {
-            cl::compatibility::make_kernel<Args...> kernel(program, "fibonacci");
+            cl::compatibility::make_kernel<Args...> kernel(program, function);
             cl::NDRange global(size);
+            cout<<"run call\n";
+            kernel(cl::EnqueueArgs(queue, global), args...).wait();
+        }
+
+        template<typename... Args>
+        void run(std::string function, int width, int height, Args... args) {
+            cl::compatibility::make_kernel<Args...> kernel(program, function);
+            cl::NDRange global(width, height);
+            cout<<"run call\n";
+            kernel(cl::EnqueueArgs(queue, global), args...).wait();
+        }
+
+        template<typename... Args>
+        void run(std::string function, int width, int height, int depth, Args... args) {
+            cl::compatibility::make_kernel<Args...> kernel(program, function);
+            cl::NDRange global(width, height, depth);
+            cout<<"run call\n";
             kernel(cl::EnqueueArgs(queue, global), args...).wait();
         }
 
         template<typename T>
-        void read(cl::Buffer outBuffer, T out[], int size) {
-            queue.enqueueReadBuffer(outBuffer, CL_TRUE, 0, sizeof(T) * size, out);
+        void read_buffer(cl::Buffer outBuffer, T out[], int size) {
+            queue.enqueueReadBuffer(
+                outBuffer,
+                CL_TRUE,
+                0,
+                sizeof(T) * size,
+                out
+            );
+        }
+
+        template<typename T>
+        void read_image(cl::Image2D outImage, T out[], int width, int height) {
+            const cl::array<cl::size_type, 2> origin{0, 0};
+            const cl::array<cl::size_type, 2> region{width, height};
+            queue.enqueueReadImage(
+                outImage,
+                CL_TRUE,
+                origin,
+                region,
+                sizeof(T) * width * 4,
+                sizeof(T) * width * height * 4,
+                out
+            );
+        }
+
+        template <typename T>
+        void read_image(cl::Image2DArray outImage, T out[], int width, int height, int depth) {
+            const cl::array<cl::size_type, 3> origin{0, 0, 0};
+            const cl::array<cl::size_type, 3> region{width, height, depth};
+            cl_int err = queue.enqueueReadImage(
+                outImage,
+                CL_TRUE,
+                origin,
+                region,
+                0,
+                0,
+                out
+            );
+            if (err != CL_SUCCESS) {
+                // Handle immediate queuing error (e.g., invalid arguments)
+                std::cout << "Error enqueuing read: " << err << '\n';
+            }
         }
 };
 

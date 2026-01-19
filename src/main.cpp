@@ -18,7 +18,9 @@ class InputParser{
         static vector<string> options;
 
     public:
-        InputParser (int &argc, char **argv){
+        int argc;
+
+        InputParser (int &argc, char **argv) : argc(argc) {
             for (int i=1; i < argc; ++i)
                 this->tokens.push_back(string(argv[i]));
         }
@@ -62,6 +64,7 @@ vector<string> InputParser::options = {
 
 config configure(const InputParser& input) {
     config cf;
+    if (input.argc <= 1) return cf;
 
     const string aspect_ratio_str = input.getCmdOption("--aspect_ratio");
     if (!aspect_ratio_str.empty()) cf.aspect_ratio = stod(aspect_ratio_str);
@@ -100,34 +103,49 @@ int main(int argc, char** argv) {
     OpenCLHelper gpu;
 
     // Later, make these global variables because heap has way more space than stack
-    int A_h[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+    // int A_h[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
     // int B_h[] = { 10, 9, 8, 7, 6, 5, 4, 3, 2, 1 };
     // int C_h[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
-    int D_h[10];
+    // int D_h[10];
 
-    auto A_d = gpu.make_buffer(A_h, 10, CL_MEM_READ_ONLY);
-    auto D_d = gpu.make_buffer(D_h, 10, CL_MEM_WRITE_ONLY);
+    // auto A_d = gpu.make_buffer(A_h, 10, CL_MEM_READ_ONLY);
+    // auto D_d = gpu.make_buffer(D_h, 10, CL_MEM_WRITE_ONLY);
 
     // in "get_global_id( 0 )", the 0 is referring to dimension index. 0 = X, 1 = Y, 2 = Z)
 
-    gpu.run("fibonacci", 10, A_d, D_d);
+    // gpu.run("fibonacci", 10, A_d, D_d);
 
-    gpu.read(D_d, D_h, 10);
+    // gpu.read(D_d, D_h, 10);
 
-    for (int i = 0; i < 10; ++i) { cout << D_h[i] << " ";}
-    cout << '\n';
+    // for (int i = 0; i < 10; ++i) { cout << D_h[i] << " ";}
+    // cout << '\n';
 
-    // InputParser input(argc, argv);
+    InputParser input(argc, argv);
 
-    // if (input.cmdOptionExists("-h")) {
-    //     InputParser::helpMessage();
-    //     return -1;
-    // }
+    if (input.cmdOptionExists("-h")) {
+        InputParser::helpMessage();
+        return -1;
+    }
 
-    // camera cam(configure(input));
+    camera cam(configure(input));
+    cout <<"?";
 
-    // string output_file = input.getCmdOption("--out");
-    // bool save = !output_file.empty();
+    float *ray_pts_h = new float[cam.width() * cam.height() * cam.aa_samples * 4];
+    float *ray_dirs_h = new float[cam.width() * cam.height() * cam.aa_samples * 4];
+    float *out_h = new float[cam.width() * cam.height() * cam.aa_samples * 4];
+
+    cam.generate_rays(ray_pts_h, ray_dirs_h);
+    
+    auto ray_pts_d = gpu.make_image(ray_pts_h, cam.width(), cam.height(), cam.aa_samples, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR);
+    auto ray_dirs_d = gpu.make_image(ray_dirs_h, cam.width(), cam.height(), cam.aa_samples, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR);
+    auto out_d = gpu.make_image(out_h, cam.width(), cam.height(), cam.aa_samples, CL_MEM_WRITE_ONLY | CL_MEM_COPY_HOST_PTR);
+    
+    gpu.run("ray_color", cam.width(), cam.height(), cam.aa_samples, ray_pts_d, ray_dirs_d, out_d);
+    
+    gpu.read_image(out_d, out_h, cam.width(), cam.height(), cam.aa_samples);
+
+    string output_file = input.getCmdOption("--out");
+    bool save = !output_file.empty();
 
     // cam.image_width = 600;
     // cam.aa_samples = 50;
@@ -186,33 +204,40 @@ int main(int argc, char** argv) {
     // world.add(make_shared<sphere>(vec3(4, 1, 0), 1, di_mat));
     // world.add(make_shared<sphere>(vec3(4, 1, 0), .9, bubble_mat));
 
-    // vector<uint8_t> pixels;
-    // pixels.reserve(cam.width() * cam.height() * 4);
+    vector<uint8_t> pixels;
+    pixels.reserve(cam.width() * cam.height() * 4);
+    for (int i = 0; i < cam.width() * cam.height() * 4; ++i) {
+        pixels.push_back(uint8_t(out_h[i] * 255));
+    }
+
+    delete[] ray_pts_h;
+    delete[] ray_dirs_h;
+    delete[] out_h;
     // cam.render(world, pixels);
 
-    // sf::RenderWindow window(sf::VideoMode({ (unsigned int)cam.width(), (unsigned int)cam.height() }), "RayTracer", sf::Style::Default, sf::State::Windowed);
+    sf::RenderWindow window(sf::VideoMode({ (unsigned int)cam.width(), (unsigned int)cam.height() }), "RayTracer", sf::Style::Default, sf::State::Windowed);
 
-    // sf::Image image({(unsigned int)cam.width(), (unsigned int)cam.height()}, pixels.data());
-    // if (save) {
-    //     bool success =image.saveToFile(output_file);
-    //     if (success) cout << "Successfully created image.png\n";
-    //     else cout << "Failed to write image\n";
-    // }
+    sf::Image image({(unsigned int)cam.width(), (unsigned int)cam.height()}, pixels.data());
+    if (save) {
+        bool success =image.saveToFile(output_file);
+        if (success) cout << "Successfully created image.png\n";
+        else cout << "Failed to write image\n";
+    }
 
-    // sf::Texture texture(image);
+    sf::Texture texture(image);
 
-    // sf::Sprite sprite(texture);
+    sf::Sprite sprite(texture);
 
-    // window.draw(sprite);
-    // window.display();
-    // while (window.isOpen())
-    // {
-    //     // check all the window's events that were triggered since the last iteration of the loop
-    //     while (const std::optional event = window.pollEvent())
-    //     {
-    //         // "close requested" event: we close the window
-    //         if (event->is<sf::Event::Closed>())
-    //             window.close();
-    //     }
-    // }
+    window.draw(sprite);
+    window.display();
+    while (window.isOpen())
+    {
+        // check all the window's events that were triggered since the last iteration of the loop
+        while (const std::optional event = window.pollEvent())
+        {
+            // "close requested" event: we close the window
+            if (event->is<sf::Event::Closed>())
+                window.close();
+        }
+    }
 }

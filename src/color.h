@@ -4,15 +4,15 @@
 #include "vec3.h"
 #include "interval.h"
 
-inline double linear_to_gamma(double linear_component) {
+inline float linear_to_gamma(float linear_component) {
     if (linear_component > 0) return std::sqrt(linear_component);
     return 0;
 }
 
 void write_color(std::ostream& out, const vec3& pixel_color) {
-    double r = pixel_color.x;
-    double g = pixel_color.y;
-    double b = pixel_color.z;
+    float r = pixel_color.x;
+    float g = pixel_color.y;
+    float b = pixel_color.z;
 
     r = linear_to_gamma(r);
     g = linear_to_gamma(g);
@@ -27,9 +27,9 @@ void write_color(std::ostream& out, const vec3& pixel_color) {
 }
 
 void write_color(std::vector<std::uint8_t>& pixels, const vec3& pixel_color) {
-    double r = pixel_color.x;
-    double g = pixel_color.y;
-    double b = pixel_color.z;
+    float r = pixel_color.x;
+    float g = pixel_color.y;
+    float b = pixel_color.z;
 
     r = linear_to_gamma(r);
     g = linear_to_gamma(g);

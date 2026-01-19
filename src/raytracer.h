@@ -10,23 +10,23 @@
 using std::make_shared;
 using std::shared_ptr;
 
-const double infinity = std::numeric_limits<double>::infinity();
-const double pi = 3.141592653589793285;
+const float infinity = std::numeric_limits<float>::infinity();
+const float pi = 3.141592653589793285;
 
 // Utitlity Functions
 
-inline double degrees_to_radians(double degrees) {
+inline float degrees_to_radians(float degrees) {
     return degrees * pi / 180.0;
 }
 
-inline double random_double() {
-    static std::uniform_real_distribution<double> dist(0.0, 1.0);
+inline float random_float() {
+    static std::uniform_real_distribution<float> dist(0.0, 1.0);
     static std::mt19937 gen;
     return dist(gen);
 }
 
-inline double random_double(double min, double max) {
-    return min + (max - min) * random_double();
+inline float random_float(float min, float max) {
+    return min + (max - min) * random_float();
 }
 
 // Common Headers
