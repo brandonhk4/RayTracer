@@ -22,7 +22,7 @@ class lambertian : public material {
         bool scatter(const ray& r_in, const hit_record& rec, vec3& attenuation, ray& scattered) const override {
             vec3 scatter_dir = rec.normal + random_unit_vector();
             if (scatter_dir.near_zero()) scatter_dir = rec.normal;
-            scattered = ray(rec.pt, scatter_dir);
+            scattered = ray(rec.pt, scatter_dir, r_in.time());
             attenuation = albedo;
             return true;
         }
@@ -37,7 +37,7 @@ class reflective : public material {
 
         bool scatter(const ray& r_in, const hit_record& rec, vec3& attenuation, ray& scattered) const override {
             vec3 reflected = reflect(r_in.dir(), rec.normal);
-            scattered = ray(rec.pt, reflected);
+            scattered = ray(rec.pt, reflected, r_in.time());
             attenuation = albedo;
             return true;
         }
@@ -53,7 +53,7 @@ class fuzzy : public reflective {
         bool scatter(const ray& r_in, const hit_record& rec, vec3& attenuation, ray& scattered) const override {
             vec3 reflected = reflect(r_in.dir(), rec.normal);
             reflected = reflected.dir() + fuzz * random_unit_vector();
-            scattered = ray(rec.pt, reflected);
+            scattered = ray(rec.pt, reflected, r_in.time());
             attenuation = albedo;
             return dot(scattered.dir(), rec.normal) > 0.0;
         }
@@ -100,7 +100,7 @@ class dielectric : public material {
                 position = rec.pt - 0.001 * normal;
             }
             
-            scattered = ray(position, direction);
+            scattered = ray(position, direction, r_in.time());
             return true;
         }
 };

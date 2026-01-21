@@ -9,6 +9,14 @@ class interval {
 
         interval(float min, float max) : min(min), max(max) {}
 
+        interval(const interval& a, const interval& b) : 
+            min(std::min(a.min, b.min)),
+            max(std::max(a.max, b.max)) {}
+
+        interval(const interval& i) :
+            min(i.min),
+            max(i.max) {}
+
         float size() const {
             return max - min;
         }

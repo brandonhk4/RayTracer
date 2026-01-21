@@ -34,13 +34,13 @@ class camera {
         vec3 pixel_center00;        // Location of pixel (0,0)
         vec3 pixel_delta_u;         // Horizontal offset of pixel
         vec3 pixel_delta_v;         // Vertical offset of pixel
-        vec3 forward, right, up;    // Camera frame basis vectors
         vec3 defocus_disk_u;        // Horizontal disk radius
         vec3 defocus_disk_v;        // Vertial disk radius
         
         void initialize() {
             image_height = max(int(image_width / aspect_ratio), 1);
-
+            
+            vec3 forward, right, up;    // Camera frame basis vectors
             forward = (target - pos).dir();
             right = cross(forward, vup.dir()).dir();
             up = cross(right, forward);
@@ -81,7 +81,9 @@ class camera {
 
             vec3 ray_dir = pixel_sample - ray_pos;
 
-            return ray(ray_pos, ray_dir);
+            float ray_time = random_float();
+
+            return ray(ray_pos, ray_dir, ray_time);
         }
 
         vec3 ray_color(const ray& r, int depth, const hittable& world) const {

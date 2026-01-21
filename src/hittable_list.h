@@ -2,11 +2,15 @@
 #define HITTABLE_LIST_H
 
 #include "hittable.h"
+#include "bbox.h"
 #include "sphere.h"
 
 #include <vector>
 
 class hittable_list : public hittable {
+    private: 
+        bbox bound_box;
+
     public:
         std::vector<shared_ptr<hittable>> objects;
 
@@ -17,6 +21,7 @@ class hittable_list : public hittable {
 
         void add(shared_ptr<hittable> object) {
             objects.push_back(object);
+            bound_box = bbox(bound_box, object->bounding_box());
         }
 
         bool hit(const ray& r, interval ray_t, hit_record& rec) const override {
@@ -34,6 +39,8 @@ class hittable_list : public hittable {
 
             return hit_anything;
         }
+
+        bbox bounding_box() const override { return bound_box; }
 };
 
 #endif
