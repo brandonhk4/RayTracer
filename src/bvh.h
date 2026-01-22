@@ -8,6 +8,7 @@
 #include <vector>
 #include <functional>
 #include <iterator>
+#include <unordered_map>
 
 class split_plane {
     public:
@@ -105,6 +106,7 @@ class bvh_node : public hittable {
         shared_ptr<hittable> left;
         shared_ptr<hittable> right;
         bbox bound_box;
+        bool leaf;
 
     public:
         bvh_node(hittable_list list) : bvh_node(list.objects, 0, list.objects.size()) {
@@ -115,10 +117,14 @@ class bvh_node : public hittable {
             // std::cout << "Constructing (" << start << ", " << end << ")\n";
             for (auto it = objects.begin() + start; it != objects.begin() + end; ++it)
                 bound_box = bbox(bound_box, (*it)->bounding_box());
-            if (end - start <= 1) left = right = objects[start];
+            if (end - start <= 1) {
+                left = right = objects[start];
+                leaf = true;
+            }
             else if (end - start == 2) {
                 left = objects[start];
                 right = objects[start + 1];
+                leaf = true;
             } else {
                 split_plane best_plane = find_best_split_plane(objects, start, end);
                 int mid = best_plane.left_count + start;
@@ -140,8 +146,53 @@ class bvh_node : public hittable {
         }
 
         bbox bounding_box() const override { return bound_box; }
+
+        shared_ptr<hittable> left_object() const { return left; }
+
+        shared_ptr<hittable> right_object() const { return right; }
+
+        bool is_leaf() const { return leaf; }
 };
 
 compare_func bvh_node::comparators[] = {&compareX, &compareY, &compareZ};
+
+class bvh_array_node {
+    public:
+    int left_node, right_node;
+    bool leaf;
+    int left_object, right_object;
+    bbox bound_box;
+
+    bvh_array_node(const std::unordered_map<hittable*, int>& objects, bvh_node& node) {
+        if (node.is_leaf()) {
+            left_object = objects.at(node.left_object().get());
+            right_object = objects.at(node.right_object().get());
+            leaf = true;
+        }
+    }
+};
+
+class bvh_tree : public hittable {
+    private:
+        bvh_node root;
+        vector<bvh_array_node> bvh_array;
+        std::unordered_map<hittable*, int> objects;
+
+        void tree_to_array(bvh_node& node) {
+            bvh_array_node a_node(objects, node);
+            bvh_array.push_back(a_node);
+            tree_to_array((bvh_node*)(node.left_object().get()));
+            tree_to_array((bvh_node*)(node.right_object().get()));
+        }
+
+    public:
+        bvh_tree(hittable_list list) : root(list.objects, 0, list.objects.size()) {
+            for (int i = 0; i < list.objects.size(); ++i) {
+                objects[list.objects[i].get()] = i;
+            }
+
+            
+        }
+};
 
 #endif
