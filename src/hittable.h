@@ -12,6 +12,8 @@ class hit_record {
         vec3 normal;
         shared_ptr<material> mat;
         float t;
+        float u;
+        float v;
 };
 
 class hittable {

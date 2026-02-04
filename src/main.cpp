@@ -1,6 +1,9 @@
 #include <SFML/Graphics.hpp>
+// Replace this with imGUI one day
 
 #include "OpenCLHelper.h"
+
+#include <thread>
 
 #include "raytracer.h"
 #include "hittable.h"
@@ -9,144 +12,40 @@
 #include "material.h"
 #include "sphere.h"
 #include "camera.h"
+#include "InputParser.h"
 
 using namespace std;
 
-class InputParser{
-    private:
-        vector <string> tokens;
+sf::Image display(vector<uint8_t>& pixels, sf::Vector2u size) {
+    sf::RenderWindow window(sf::VideoMode(size), "RayTracer", sf::Style::Default, sf::State::Windowed);
+    sf::Texture texture(size);
+    sf::Sprite sprite(texture);
 
-        static vector<string> options;
-
-    public:
-        int argc;
-
-        InputParser (int &argc, char **argv) : argc(argc) {
-            for (int i=1; i < argc; ++i)
-                this->tokens.push_back(string(argv[i]));
+    window.draw(sprite);
+    window.display();
+    while (window.isOpen())
+    {
+        // check all the window's events that were triggered since the last iteration of the loop
+        while (const std::optional event = window.pollEvent())
+        {
+            // "close requested" event: we close the window
+            if (event->is<sf::Event::Closed>())
+                window.close();
         }
-
-        const string& getCmdOption(const string &option) const{
-            vector<string>::const_iterator itr;
-            itr =  find(this->tokens.begin(), this->tokens.end(), option);
-            if (itr != this->tokens.end() && ++itr != this->tokens.end()){
-                return *itr;
-            }
-            static const string empty_string("");
-            return empty_string;
-        }
-
-        bool cmdOptionExists(const string &option) const{
-            return find(this->tokens.begin(), this->tokens.end(), option)
-                   != this->tokens.end();
-        }
-
-        static void helpMessage() {
-            cout << "Configurations Options:\n";
-            cout << "\t\t--f (output file)\n";
-            for (auto it = options.begin(); it != options.end(); ++it) {
-                cout << "\t\t" << *it << '\n';
-            }
-        }
-};
-
-vector<string> InputParser::options = {
-            "--aspect_ratio",
-            "--image_width",
-            "--aa_samples",
-            "--max_depth",
-            "--field_of_view",
-            "--position",
-            "--target",
-            "--vertical_up",
-            "--defocus_angle",
-            "--focus_distance"
-        };
-
-config configure(const InputParser& input) {
-    config cf;
-    if (input.argc <= 1) return cf;
-
-    const string aspect_ratio_str = input.getCmdOption("--aspect_ratio");
-    if (!aspect_ratio_str.empty()) cf.aspect_ratio = stod(aspect_ratio_str);
-    
-    const string image_width_str = input.getCmdOption("--width");
-    if (!image_width_str.empty()) cf.image_width = stoi(image_width_str);
-
-    const string aa_samples_str = input.getCmdOption("--aa_samples");
-    if (!aa_samples_str.empty()) cf.aa_samples = stoi(aa_samples_str);
-
-    const string max_depth_str = input.getCmdOption("--max_depth");
-    if (!max_depth_str.empty()) cf.max_depth = stoi(max_depth_str);
-
-    const string vfov_str = input.getCmdOption("--field_of_view");
-    if (!vfov_str.empty()) cf.vfov = stod(vfov_str);
-
-    const string pos_str = input.getCmdOption("--position");
-    if (!pos_str.empty()) cf.pos = vec3::stov(pos_str);
-
-    const string target_str = input.getCmdOption("--target");
-    if (!target_str.empty()) cf.target = vec3::stov(target_str);
-
-    const string vup_str = input.getCmdOption("--vertical_up");
-    if (!vup_str.empty()) cf.vup = vec3::stov(vup_str);
-
-    const string defocus_angle_str = input.getCmdOption("--defocus_angle");
-    if (!defocus_angle_str.empty()) cf.defocus_angle = stod(defocus_angle_str);
-
-    const string focus_dist_str = input.getCmdOption("--focus_distance");
-    if (!focus_dist_str.empty()) cf.focus_dist = stod(focus_dist_str);
-
-    return cf;
-}
-
-int main(int argc, char** argv) {
-    InputParser input(argc, argv);
-    if (input.cmdOptionExists("-h")) {
-        InputParser::helpMessage();
-        return -1;
+        texture.update(pixels.data());
+        window.clear();
+        window.draw(sprite);
+        window.display();
     }
 
-    config cf = configure(input);
+    return texture.copyToImage();
+}
 
-    cf.image_width = 600;
-    cf.aa_samples = 50;
-    cf.max_depth = 16;
-
-    cf.vfov = 20;
-    cf.pos = vec3(13, 2, 3);
-    cf.target = vec3();
-    
-    cf.defocus_angle = 0.6;
-    cf.focus_dist = 10.0;
-
-    camera cam(cf);
-    
-    // // OpenCLHelper gpu;
-
-    // // float *ray_pts_h = new float[cam.width() * cam.height() * cam.aa_samples * 4];
-    // // float *ray_dirs_h = new float[cam.width() * cam.height() * cam.aa_samples * 4];
-    // // float *out_h = new float[cam.width() * cam.height() * cam.aa_samples * 4];
-
-    // // cam.generate_rays(ray_pts_h, ray_dirs_h);
-    
-    // // auto ray_pts_d = gpu.make_image(ray_pts_h, cam.width(), cam.height(), cam.aa_samples, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR);
-    // // auto ray_dirs_d = gpu.make_image(ray_dirs_h, cam.width(), cam.height(), cam.aa_samples, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR);
-    // // auto out_d = gpu.make_image(out_h, cam.width(), cam.height(), cam.aa_samples, CL_MEM_WRITE_ONLY | CL_MEM_COPY_HOST_PTR);
-    
-    // // gpu.run("ray_color", cam.width(), cam.height(), cam.aa_samples, ray_pts_d, ray_dirs_d, out_d);
-    
-    // // gpu.read_image(out_d, out_h, cam.width(), cam.height(), cam.aa_samples);
-
-    string output_file = input.getCmdOption("--out");
-    bool save = !output_file.empty();
-
-    bool tree = input.cmdOptionExists("--bvh");
-
-    // World
+hittable_list bouncing_balls() {
     hittable_list world;
 
-    shared_ptr<lambertian> ground_mat = make_shared<lambertian>(vec3(0.5, 0.5, 0.5));
+    auto checker = make_shared<checker_texture>(.32, vec3(.1, .3, .2), vec3(.9, .9, .9));
+    shared_ptr<lambertian> ground_mat = make_shared<lambertian>(checker);
     world.add(make_shared<sphere>(vec3(0, -1000, 0), 1000, ground_mat));
 
     for (int a = -10; a < 10; ++a) {
@@ -190,41 +89,50 @@ int main(int argc, char** argv) {
     world.add(make_shared<sphere>(vec3(4, 1, 0), 1, di_mat));
     world.add(make_shared<sphere>(vec3(4, 1, 0), .9, bubble_mat));
 
-    if (tree) world = hittable_list(make_shared<bvh_node>(world));
-    vector<uint8_t> pixels;
-    pixels.reserve(cam.width() * cam.height() * 4);
-    // // for (int i = 0; i < cam.width() * cam.height() * 4; ++i) {
-    // //     pixels.push_back(uint8_t(out_h[i] * 255));
-    // // }
+    return world;
+}
 
-    // // delete[] ray_pts_h;
-    // // delete[] ray_dirs_h;
-    // // delete[] out_h;
-    cam.render(world, pixels);
-
-    sf::RenderWindow window(sf::VideoMode({ (unsigned int)cam.width(), (unsigned int)cam.height() }), "RayTracer", sf::Style::Default, sf::State::Windowed);
-
-    sf::Image image({(unsigned int)cam.width(), (unsigned int)cam.height()}, pixels.data());
-    if (save) {
-        bool success =image.saveToFile(output_file);
-        if (success) cout << "Successfully created image.png\n";
-        else cout << "Failed to write image\n";
+int main(int argc, char** argv) {
+    InputParser input(argc, argv);
+    if (input.cmdOptionExists("-h")) {
+        InputParser::helpMessage();
+        return -1;
     }
 
-    sf::Texture texture(image);
+    string output_file = input.getCmdOption("--out");
+    bool save = !output_file.empty();
 
-    sf::Sprite sprite(texture);
+    bool tree = input.cmdOptionExists("--bvh");
 
-    window.draw(sprite);
-    window.display();
-    while (window.isOpen())
-    {
-        // check all the window's events that were triggered since the last iteration of the loop
-        while (const std::optional event = window.pollEvent())
-        {
-            // "close requested" event: we close the window
-            if (event->is<sf::Event::Closed>())
-                window.close();
-        }
+    config cf = configure(input);
+
+    cf.image_width = 1024;
+    cf.aa_samples = 50;
+    cf.max_depth = 16;
+
+    cf.vfov = 20;
+    cf.pos = vec3(13, 2, 3);
+    cf.target = vec3();
+    
+    cf.defocus_angle = 0.6;
+    cf.focus_dist = 10.0;
+
+    camera cam(cf);
+
+    
+    // World
+    hittable_list world = bouncing_balls();
+    if (tree) world = hittable_list(make_shared<bvh_node>(world));
+
+    vector<uint8_t> pixels(cam.width() * cam.height() * 4);
+
+    thread render(&camera::render, &cam, std::ref(world), std::ref(pixels));
+
+    sf::Image image(display(pixels, { (unsigned int)cam.width(), (unsigned int)cam.height() }));
+
+    if (save) {
+        bool success = image.saveToFile(output_file);
+        if (success) cout << "Successfully created image.png\n";
+        else cout << "Failed to write image\n";
     }
 }

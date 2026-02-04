@@ -136,6 +136,7 @@ class camera {
         {initialize();}
 
         void render(const hittable& world, vector<uint8_t>& pixels) {
+            auto it = pixels.begin();
             for (int j = 0; j < image_height; j++) {
                 clog << "\rScanlines remaining: " << (image_height - j) << ' ' << flush;
                 for (int i = 0; i < image_width; i++) {
@@ -144,8 +145,8 @@ class camera {
                         ray r = get_ray(i, j);
                         pixel_color += ray_color(r, max_depth, world) / aa_samples;
                     }
-                    
-                    write_color(pixels, pixel_color);
+
+                    write_color(it, pixel_color);
                 }
             }
             clog << "\rDone.                 \n";

@@ -10,6 +10,10 @@
 #include <iterator>
 #include <unordered_map>
 
+// LOOK AT THE LINK IN THE GOOGLE DOC
+// TODO: Make a Linear BVH or a Hybrid BVH
+
+
 class split_plane {
     public:
         int axis;
@@ -138,7 +142,7 @@ class bvh_node : public hittable {
 
         bool hit(const ray& r, interval ray_t, hit_record& rec) const override {
             if (!bound_box.hit(r, ray_t)) return false;
-            // if (ray_t.max < infinity) std::cout << ray_t.max << '\n';
+
             bool hit_left = left->hit(r, ray_t, rec);
             bool hit_right = right->hit(r, interval(ray_t.min, hit_left ? rec.t : ray_t.max), rec);
 
@@ -156,43 +160,85 @@ class bvh_node : public hittable {
 
 compare_func bvh_node::comparators[] = {&compareX, &compareY, &compareZ};
 
-class bvh_array_node {
-    public:
-    int left_node, right_node;
-    bool leaf;
-    int left_object, right_object;
-    bbox bound_box;
+// class bvh_array_node {
+//     public:
+//     bool leaf = false;
+//     int left, right;
+//     bbox bound_box;
 
-    bvh_array_node(const std::unordered_map<hittable*, int>& objects, bvh_node& node) {
-        if (node.is_leaf()) {
-            left_object = objects.at(node.left_object().get());
-            right_object = objects.at(node.right_object().get());
-            leaf = true;
-        }
-    }
-};
+//     bvh_array_node(const std::unordered_map<hittable*, int>& objects, bvh_node* node) {
+//         if (node->is_leaf()) {
+//             left = objects.at(node->left_object().get());
+//             right = objects.at(node->right_object().get());
+//             leaf = true;
+//         }
+//     }
 
-class bvh_tree : public hittable {
-    private:
-        bvh_node root;
-        vector<bvh_array_node> bvh_array;
-        std::unordered_map<hittable*, int> objects;
+//     bool hit(const ray& r, interval ray_t, hit_record& rec) const {
+//         if (!bound_box.hit(r, ray_t)) return false;
+//     }
+// };
 
-        void tree_to_array(bvh_node& node) {
-            bvh_array_node a_node(objects, node);
-            bvh_array.push_back(a_node);
-            tree_to_array((bvh_node*)(node.left_object().get()));
-            tree_to_array((bvh_node*)(node.right_object().get()));
-        }
 
-    public:
-        bvh_tree(hittable_list list) : root(list.objects, 0, list.objects.size()) {
-            for (int i = 0; i < list.objects.size(); ++i) {
-                objects[list.objects[i].get()] = i;
-            }
+// // Make the tree contiguous in memory by using an array
+// class bvh_tree : public hittable {
+//     private:
+//         bvh_node root;
+//         std::vector<bvh_array_node> bvh_array;
+//         std::unordered_map<hittable*, int> objects_map;
+//         std::vector<shared_ptr<hittable>>& objects;
 
-            
-        }
-};
+//         int tree_to_array(bvh_node* node) {
+//             int index = bvh_array.size();
+//             bvh_array.emplace_back(objects_map, node);
+//             std::cout << node->left_object().get() << ", " << dynamic_cast<bvh_node*>(node->right_object().get()) << ", " << node << ", " << index << '\n';
+//             bvh_array_node& a_node = bvh_array[index];
+//             if (!a_node.leaf) {
+//                 // bvh_node* left = (static_cast<bvh_node*>(node->left_object().get()));
+//                 // std::cout << left->bounding_box()[0].min << ", " << left->bounding_box()[0].max << ", " << (static_cast<bvh_node*>(node->left_object().get())) << '\n';
+//                 a_node.left = tree_to_array((static_cast<bvh_node*>(node->left_object().get())));
+//                 a_node.right = tree_to_array((static_cast<bvh_node*>(node->right_object().get())));
+//             }
+//             std::cout << a_node.left << ", " << a_node.right << "\n";
+//             return index;
+//         }
+
+//     public:
+//         bvh_tree(hittable_list list) : root(list.objects, 0, list.objects.size()), objects(list.objects) {
+//             for (int i = 0; i < objects.size(); ++i) {
+//                 objects_map[objects[i].get()] = i;
+//             }
+
+//             tree_to_array(&root);
+
+//             for (bvh_array_node& node : bvh_array) {
+//                 std::cout << node.left << ", " << node.right << "\n";
+//             }
+//         }
+
+//         bool hit(const ray& r, interval ray_t, hit_record& rec) const override {
+//             std::stack<bvh_array_node> stack;
+//             stack.push(bvh_array[0]);
+//             bool hit = false;
+//             while (!stack.empty()) {
+//                 bvh_array_node node = stack.top();
+//                 stack.pop();
+//                 if (node.bound_box.hit(r, ray_t)) {
+//                     if (!node.leaf) {
+//                         stack.push(bvh_array[node.right]);
+//                         stack.push(bvh_array[node.left]);
+//                     } else {
+//                         bool left_hit = objects[node.left]->hit(r, ray_t, rec);
+//                         if (left_hit) ray_t.max = rec.t;
+//                         bool right_hit = objects[node.right]->hit(r, ray_t, rec);
+//                         hit = hit || left_hit || right_hit;
+//                     }
+//                 }
+//             }
+//             return hit;
+//         };
+
+//         bbox bounding_box() const { return bvh_array[0].bound_box; }
+// };
 
 #endif

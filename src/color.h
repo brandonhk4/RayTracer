@@ -26,7 +26,7 @@ void write_color(std::ostream& out, const vec3& pixel_color) {
     out << rbyte << gbyte << bbyte;
 }
 
-void write_color(std::vector<std::uint8_t>& pixels, const vec3& pixel_color) {
+void write_color(std::vector<std::uint8_t>::iterator& pixels, const vec3& pixel_color) {
     float r = pixel_color.x;
     float g = pixel_color.y;
     float b = pixel_color.z;
@@ -36,10 +36,10 @@ void write_color(std::vector<std::uint8_t>& pixels, const vec3& pixel_color) {
     b = linear_to_gamma(b);
 
     static const interval intensity(0.0, 0.999);
-    pixels.emplace_back(256 * intensity.clamp(r));
-    pixels.emplace_back(256 * intensity.clamp(g));
-    pixels.emplace_back(256 * intensity.clamp(b));
-    pixels.emplace_back(255);
+    *pixels = static_cast<std::uint8_t>(std::floor(256 * intensity.clamp(r))); ++pixels;
+    *pixels = static_cast<std::uint8_t>(std::floor(256 * intensity.clamp(g))); ++pixels;
+    *pixels = static_cast<std::uint8_t>(std::floor(256 * intensity.clamp(b))); ++pixels;
+    *pixels = static_cast<std::uint8_t>(255); ++pixels;
 }
 
 #endif
