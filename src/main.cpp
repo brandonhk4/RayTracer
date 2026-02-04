@@ -1,7 +1,7 @@
 #include <SFML/Graphics.hpp>
 // Replace this with imGUI one day
 
-#include "OpenCLHelper.h"
+// #include "OpenCLHelper.h"
 
 #include <thread>
 
@@ -92,6 +92,27 @@ hittable_list bouncing_balls() {
     return world;
 }
 
+hittable_list checkered_spheres() {
+    hittable_list world;
+
+    auto checker = make_shared<checker_texture>(0.32, vec3(.2, .3, .1), vec3(.9, .9, .9));
+
+    world.add(make_shared<sphere>(vec3(0,-10, 0), 10, make_shared<lambertian>(checker)));
+    world.add(make_shared<sphere>(vec3(0, 10, 0), 10, make_shared<lambertian>(checker)));
+    return world;
+}
+
+hittable_list earth() {
+    hittable_list world;
+
+    auto earth_texture = make_shared<image_texture>("earth.jpg");
+    auto earth_surface = make_shared<lambertian>(earth_texture);
+    auto globe = make_shared<sphere>(vec3(), 2, earth_surface);
+    world.add(globe);
+
+    return world;
+}
+
 int main(int argc, char** argv) {
     InputParser input(argc, argv);
     if (input.cmdOptionExists("-h")) {
@@ -121,7 +142,7 @@ int main(int argc, char** argv) {
 
     
     // World
-    hittable_list world = bouncing_balls();
+    hittable_list world = earth();
     if (tree) world = hittable_list(make_shared<bvh_node>(world));
 
     vector<uint8_t> pixels(cam.width() * cam.height() * 4);

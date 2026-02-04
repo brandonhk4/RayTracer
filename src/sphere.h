@@ -11,6 +11,18 @@ class sphere : public hittable {
         shared_ptr<material> mat;
         bbox bound_box;
 
+        static void get_sphere_uv(const vec3& p, float& u, float& v) {
+            // p: given point on a unit sphere
+            // u: returned value [0, 1] of angle wrapping around y-axis.
+            // v: returned value [0, 1] of angle from south to north pole.
+
+            float theta = std::acos(-p.y);
+            float phi = std::atan2(-p.z, p.x) + pi;
+
+            u = phi / (2 * pi);
+            v = theta / pi;
+        }
+
     public:    
         sphere(const vec3& cen, float rad, shared_ptr<material> mat) : 
             center(cen, vec3()),
@@ -48,6 +60,7 @@ class sphere : public hittable {
             rec.pt = r.at(root);
             rec.normal = (rec.pt - current_center) / radius;
             rec.mat = mat;
+            get_sphere_uv(rec.normal, rec.u, rec.v);
 
             return true;
         }

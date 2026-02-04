@@ -2,6 +2,7 @@
 #define TEXTURE_H
 
 #include "raytracer.h" 
+#include "rtw_stb_image.h"
 
 class texture {
     public:
@@ -44,6 +45,29 @@ class checker_texture : public texture {
 
             return (xInt + yInt + zInt) % 2 == 0 ? even->value(u, v, p) : odd->value(u, v, p);
         }        
+};
+
+class image_texture : public texture {
+    private:
+        rtw_image image;
+    
+    public:
+        image_texture(const char* filename) : image(filename) {}
+
+        vec3 value(float u, float v, const vec3& p) const override {
+            // If no texture data, return cyan to debug
+            if (image.height() <= 0) return vec3(0, 1, 1);
+
+            u = interval(0, 1).clamp(u);
+            v = 1.0 - interval(0, 1).clamp(v);
+
+            int i = int(u * image.width());
+            int j = int(v * image.height());
+            const unsigned char* pixel = image.pixel_data(i, j);
+
+            float color_scale = 1.0f / 255.0f;
+            return vec3(pixel[0], pixel[1], pixel[2]) * color_scale;
+        }
 };
 
 #endif

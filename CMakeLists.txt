@@ -34,22 +34,23 @@ FetchContent_Declare(SFML
     SYSTEM)
 FetchContent_MakeAvailable(SFML)
 
-# OpenCL
-set (TCLAP_INCLUDE_PATH '-DTCLAP_INCLUDE_PATH = src/external/tclap-1.4.0-rc2/include' )
-set (Stb_INCLUDE_PATH '-D Stb_INCLUDE_PATH = src/external/stb' )
-set (Vulkan_INCLUDE_DIR $ENV{VULKAN_SDK}/Include)
-set (Vulkan_LIBRARY $ENV{VULKAN_SDK}/Lib)
-# include_directories ( TCLAP_INCLUDE_PATH Stb_INCLUDE_PATH)
-include( FetchContent )
-FetchContent_Declare( OpenCL
-    GIT_REPOSITORY https://github.com/KhronosGroup/OpenCL-SDK.git
-    GIT_TAG v2025.07.23
-    GIT_SHALLOW ON
-    EXCLUDE_FROM_ALL
-    SYSTEM )
-FetchContent_MakeAvailable( OpenCL )
+# # OpenCL
+# set (TCLAP_INCLUDE_PATH '-DTCLAP_INCLUDE_PATH = src/external/tclap-1.4.0-rc2/include' )
+# set (Stb_INCLUDE_PATH '-D Stb_INCLUDE_PATH = src/external/stb' )
+# set (Vulkan_INCLUDE_DIR $ENV{VULKAN_SDK}/Include)
+# set (Vulkan_LIBRARY $ENV{VULKAN_SDK}/Lib)
+# # include_directories ( TCLAP_INCLUDE_PATH Stb_INCLUDE_PATH)
+# include( FetchContent )
+# FetchContent_Declare( OpenCL
+#     GIT_REPOSITORY https://github.com/KhronosGroup/OpenCL-SDK.git
+#     GIT_TAG v2025.07.23
+#     GIT_SHALLOW ON
+#     EXCLUDE_FROM_ALL
+#     SYSTEM )
+# FetchContent_MakeAvailable( OpenCL )
 
 add_executable ( RayTracer ${SOURCE} )
 target_compile_features( RayTracer PRIVATE cxx_std_17 )
 target_link_libraries ( RayTracer PRIVATE 
-SFML::Graphics SFML::Window OpenCL::OpenCL OpenCL::HeadersCpp)
+# SFML::Graphics SFML::Window OpenCL::OpenCL OpenCL::HeadersCpp)
+SFML::Graphics SFML::Window)
