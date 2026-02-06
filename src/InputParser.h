@@ -56,9 +56,8 @@ vector<string> InputParser::options = {
             "--focus_distance"
         };
 
-config configure(const InputParser& input) {
-    config cf;
-    if (input.argc <= 1) return cf;
+void configure(const InputParser& input, config& cf) {
+    if (input.argc <= 1) return;
 
     const string aspect_ratio_str = input.getCmdOption("--aspect_ratio");
     if (!aspect_ratio_str.empty()) cf.aspect_ratio = stod(aspect_ratio_str);
@@ -89,8 +88,6 @@ config configure(const InputParser& input) {
 
     const string focus_dist_str = input.getCmdOption("--focus_distance");
     if (!focus_dist_str.empty()) cf.focus_dist = stod(focus_dist_str);
-
-    return cf;
 }
 
 #endif

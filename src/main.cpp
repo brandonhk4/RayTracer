@@ -21,6 +21,9 @@ sf::Image display(vector<uint8_t>& pixels, sf::Vector2u size) {
     sf::Texture texture(size);
     sf::Sprite sprite(texture);
 
+    // To prevent double clicks
+    sf::Vector2i prevPos;
+
     window.draw(sprite);
     window.display();
     while (window.isOpen())
@@ -31,6 +34,20 @@ sf::Image display(vector<uint8_t>& pixels, sf::Vector2u size) {
             // "close requested" event: we close the window
             if (event->is<sf::Event::Closed>())
                 window.close();
+
+            if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
+                sf::Vector2i mousePos = sf::Mouse::getPosition(window);
+                if (prevPos != mousePos && mousePos.x <= size.x && mousePos.y <= size.y) {
+                    int index = (mousePos.x + mousePos.y * size.y) * 4;
+                    cout << "Pixel at (" << mousePos.x << ", " << mousePos.y << "): "; 
+                    cout << '(' << int(pixels[index]) << ", " << int(pixels[index + 1]) << ", " << int(pixels[index + 2]) << ")\n";
+                    prevPos = mousePos;
+                }
+            }
+
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Escape)) {
+                window.close();
+            }
         }
         texture.update(pixels.data());
         window.clear();
@@ -107,8 +124,18 @@ hittable_list earth() {
 
     auto earth_texture = make_shared<image_texture>("earth.jpg");
     auto earth_surface = make_shared<lambertian>(earth_texture);
-    auto globe = make_shared<sphere>(vec3(), 2, earth_surface);
-    world.add(globe);
+    world.add(make_shared<sphere>(vec3(), 2, earth_surface));
+
+    return world;
+}
+
+hittable_list perlin_spheres() {
+    hittable_list world;
+
+    auto perlin_texture = make_shared<noise_texture>(.5, 4);
+    auto perlin_mat = make_shared<lambertian>(perlin_texture);
+    world.add(make_shared<sphere>(vec3(0, -1000, 0), 1000, perlin_mat));
+    world.add(make_shared<sphere>(vec3(0, 2, 0), 2, perlin_mat));
 
     return world;
 }
@@ -125,7 +152,7 @@ int main(int argc, char** argv) {
 
     bool tree = input.cmdOptionExists("--bvh");
 
-    config cf = configure(input);
+    config cf;
 
     cf.image_width = 1024;
     cf.aa_samples = 50;
@@ -138,11 +165,13 @@ int main(int argc, char** argv) {
     cf.defocus_angle = 0.6;
     cf.focus_dist = 10.0;
 
+    configure(input, cf);
+
     camera cam(cf);
 
     
     // World
-    hittable_list world = earth();
+    hittable_list world = perlin_spheres();
     if (tree) world = hittable_list(make_shared<bvh_node>(world));
 
     vector<uint8_t> pixels(cam.width() * cam.height() * 4);
@@ -150,6 +179,8 @@ int main(int argc, char** argv) {
     thread render(&camera::render, &cam, std::ref(world), std::ref(pixels));
 
     sf::Image image(display(pixels, { (unsigned int)cam.width(), (unsigned int)cam.height() }));
+
+    render.join();
 
     if (save) {
         bool success = image.saveToFile(output_file);

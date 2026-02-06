@@ -11,21 +11,21 @@ using namespace std;
 struct config {
     // Screen config
     float aspect_ratio = 16.0 / 9.0;   // Ratio of image width over height
-    int image_width = 512;              // Rendered image width in pixel count
+    int image_width = 1024;            // Rendered image width in pixel count
 
     // Render config
-    int aa_samples = 10;                // Count of random samples for each pixel for antialiasing
-    int max_depth = 8;                 // Maximum number of ray bounce recursions
+    int aa_samples = 20;                // Count of random samples for each pixel for antialiasing
+    int max_depth = 16;                 // Maximum number of ray bounce recursions
     
     // Camera config
-    float vfov = 90;                   // Vertical view angle (field of view)
+    float vfov = 90;                    // Vertical view angle (field of view)
     vec3 pos;                           // Point camera is at
     vec3 target = vec3(0, 0, -1);       // Point camera is looking at
     vec3 vup = vec3(0, 1, 0);           // Camera "up" direction. Change to roll camera.
 
     // Lens config
-    float defocus_angle = 0;           // Variation angle of rays through each pixel
-    float focus_dist = 0;              // Distance from camera lens to plane of perfect focus
+    float defocus_angle = 0;            // Variation angle of rays through each pixel
+    float focus_dist = 0;               // Distance from camera lens to plane of perfect focus
 };
 
 class camera {
@@ -100,7 +100,7 @@ class camera {
 
             vec3 unit_dir = r.dir().dir();
             float a = 0.5 * (unit_dir.y + 1.0);
-            return (1.0 - a) * vec3(1.0) + a * vec3(0.5, 0.8, 0.8);
+            return (1.0 - a) * vec3(1.0) + a * vec3(0.5, 0.7, 0.8);
         }
 
     public:

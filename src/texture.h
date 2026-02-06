@@ -3,6 +3,7 @@
 
 #include "raytracer.h" 
 #include "rtw_stb_image.h"
+#include "perlin.h"
 
 class texture {
     public:
@@ -67,6 +68,20 @@ class image_texture : public texture {
 
             float color_scale = 1.0f / 255.0f;
             return vec3(pixel[0], pixel[1], pixel[2]) * color_scale;
+        }
+};
+
+class noise_texture : public texture {
+    private:
+        perlin noise;
+        float scale;
+        int turbulence;
+    
+    public:
+        noise_texture(float scale = 1, int turbulence = 1) : scale(scale), turbulence(turbulence) {}
+        
+        vec3 value(float u, float v, const vec3& p) const override {
+            return vec3(1) * noise.turb(p * scale, turbulence);
         }
 };
 
