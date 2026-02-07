@@ -21,16 +21,26 @@ class bbox {
             dirty = false;
         }
 
+        void pad() {
+            float delta = 0.0001;
+
+            if (x.size() < delta) x.max += delta;
+            if (y.size() < delta) y.max += delta;
+            if (z.size() < delta) z.max += delta;
+        }
+
     public:
         bbox() : bbox(vec3(), vec3()) {}
         bbox(vec3 min, vec3 max) {
             for (int axis = 0; axis < 3; ++axis) {
                 intervals[axis] = (max[axis] > min[axis]) ? interval(min[axis], max[axis]) : interval(max[axis], min[axis]);
             }
+
+            pad();
         }
 
         bbox(const interval& x, const interval& y, const interval& z) :
-            x(x), y(y), z(z) {}
+            x(x), y(y), z(z) { pad(); }
 
         bbox(const bbox& a, const bbox& b) : 
             x(a.x, b.x),

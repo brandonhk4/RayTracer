@@ -11,6 +11,8 @@
 #include "bvh.h"
 #include "material.h"
 #include "sphere.h"
+#include "quad.h"
+#include "triangle.h"
 #include "camera.h"
 #include "InputParser.h"
 
@@ -38,7 +40,7 @@ sf::Image display(vector<uint8_t>& pixels, sf::Vector2u size) {
             if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
                 sf::Vector2i mousePos = sf::Mouse::getPosition(window);
                 if (prevPos != mousePos && mousePos.x <= size.x && mousePos.y <= size.y) {
-                    int index = (mousePos.x + mousePos.y * size.y) * 4;
+                    int index = (mousePos.x + mousePos.y * size.x) * 4;
                     cout << "Pixel at (" << mousePos.x << ", " << mousePos.y << "): "; 
                     cout << '(' << int(pixels[index]) << ", " << int(pixels[index + 1]) << ", " << int(pixels[index + 2]) << ")\n";
                     prevPos = mousePos;
@@ -58,7 +60,7 @@ sf::Image display(vector<uint8_t>& pixels, sf::Vector2u size) {
     return texture.copyToImage();
 }
 
-hittable_list bouncing_balls() {
+hittable_list bouncing_balls(config& cf) {
     hittable_list world;
 
     auto checker = make_shared<checker_texture>(.32, vec3(.1, .3, .2), vec3(.9, .9, .9));
@@ -106,36 +108,111 @@ hittable_list bouncing_balls() {
     world.add(make_shared<sphere>(vec3(4, 1, 0), 1, di_mat));
     world.add(make_shared<sphere>(vec3(4, 1, 0), .9, bubble_mat));
 
+    cf.image_width = 1024;
+    cf.aa_samples = 50;
+    cf.max_depth = 16;
+
+    cf.vfov = 20;
+    cf.pos = vec3(13, 2, 3);
+    cf.target = vec3();
+    
+    cf.defocus_angle = 0.6;
+    cf.focus_dist = 10.0;
+
     return world;
 }
 
-hittable_list checkered_spheres() {
+hittable_list checkered_spheres(config& cf) {
     hittable_list world;
 
     auto checker = make_shared<checker_texture>(0.32, vec3(.2, .3, .1), vec3(.9, .9, .9));
 
     world.add(make_shared<sphere>(vec3(0,-10, 0), 10, make_shared<lambertian>(checker)));
     world.add(make_shared<sphere>(vec3(0, 10, 0), 10, make_shared<lambertian>(checker)));
+    
+    cf.image_width = 1024;
+    cf.aa_samples = 50;
+    cf.max_depth = 16;
+
+    cf.vfov = 20;
+    cf.pos = vec3(13, 2, 3);
+    cf.target = vec3();
+    
+    cf.defocus_angle = 0.6;
+    cf.focus_dist = 10.0;
+    
     return world;
 }
 
-hittable_list earth() {
+hittable_list earth(config& cf) {
     hittable_list world;
 
     auto earth_texture = make_shared<image_texture>("earth.jpg");
     auto earth_surface = make_shared<lambertian>(earth_texture);
     world.add(make_shared<sphere>(vec3(), 2, earth_surface));
 
+    cf.image_width = 1024;
+    cf.aa_samples = 50;
+    cf.max_depth = 16;
+
+    cf.vfov = 20;
+    cf.pos = vec3(13, 2, 3);
+    cf.target = vec3();
+    
+    cf.defocus_angle = 0.6;
+    cf.focus_dist = 10.0;
+
     return world;
 }
 
-hittable_list perlin_spheres() {
+hittable_list perlin_spheres(config& cf) {
     hittable_list world;
 
     auto perlin_texture = make_shared<noise_texture>(.5, 4);
     auto perlin_mat = make_shared<lambertian>(perlin_texture);
     world.add(make_shared<sphere>(vec3(0, -1000, 0), 1000, perlin_mat));
     world.add(make_shared<sphere>(vec3(0, 2, 0), 2, perlin_mat));
+
+    cf.image_width = 1024;
+    cf.aa_samples = 50;
+    cf.max_depth = 16;
+
+    cf.vfov = 20;
+    cf.pos = vec3(13, 2, 3);
+    cf.target = vec3();
+    
+    cf.defocus_angle = 0.6;
+    cf.focus_dist = 10.0;
+
+    return world;
+}
+
+hittable_list quads(config& cf) {
+    hittable_list world;
+
+    // Materials
+    auto left_red     = make_shared<lambertian>(vec3(1.0, 0.2, 0.2));
+    auto back_green   = make_shared<lambertian>(vec3(0.2, 1.0, 0.2));
+    auto right_blue   = make_shared<lambertian>(vec3(0.2, 0.2, 1.0));
+    auto upper_orange = make_shared<lambertian>(vec3(1.0, 0.5, 0.0));
+    auto lower_teal   = make_shared<lambertian>(vec3(0.2, 0.8, 0.8));
+
+    // Quads
+    world.add(make_shared<quad>(vec3(-3,-2, 5), vec3(0, 0,-4), vec3(0, 4, 0), left_red));
+    world.add(make_shared<quad>(vec3(-2,-2, 0), vec3(4, 0, 0), vec3(0, 4, 0), back_green));
+    world.add(make_shared<quad>(vec3( 3,-2, 1), vec3(0, 0, 4), vec3(0, 4, 0), right_blue));
+    world.add(make_shared<quad>(vec3(-2, 3, 1), vec3(4, 0, 0), vec3(0, 0, 4), upper_orange));
+    world.add(make_shared<quad>(vec3(-2,-3, 5), vec3(4, 0, 0), vec3(0, 0,-4), lower_teal));
+
+    cf.image_width = 1024;
+    cf.aa_samples = 50;
+    cf.max_depth = 16;
+
+    cf.vfov = 80;
+    cf.pos = vec3(0, 0, 9);
+    cf.target = vec3();
+
+    cf.defocus_angle = 0;
 
     return world;
 }
@@ -154,24 +231,10 @@ int main(int argc, char** argv) {
 
     config cf;
 
-    cf.image_width = 1024;
-    cf.aa_samples = 50;
-    cf.max_depth = 16;
-
-    cf.vfov = 20;
-    cf.pos = vec3(13, 2, 3);
-    cf.target = vec3();
-    
-    cf.defocus_angle = 0.6;
-    cf.focus_dist = 10.0;
-
+    hittable_list world = quads(cf);
     configure(input, cf);
 
     camera cam(cf);
-
-    
-    // World
-    hittable_list world = perlin_spheres();
     if (tree) world = hittable_list(make_shared<bvh_node>(world));
 
     vector<uint8_t> pixels(cam.width() * cam.height() * 4);
