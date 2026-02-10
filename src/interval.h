@@ -41,4 +41,12 @@ class interval {
 const interval interval::empty = interval(+infinity, -infinity);
 const interval interval::universe = interval(-infinity, +infinity);
 
+interval operator+(const interval& i, float d) {
+    return interval(i.min + d, i.max + d);
+}
+
+interval operator+(float d, const interval& i) {
+    return i + d;
+}
+
 #endif

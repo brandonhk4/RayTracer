@@ -5,10 +5,6 @@
 
 class bbox {
     private:
-        union { 
-            interval intervals[3];
-            struct {interval x, y, z;};
-        };
         float barea;
         float bvolume;
         bool dirty = true;
@@ -30,6 +26,11 @@ class bbox {
         }
 
     public:
+        union { 
+            interval intervals[3];
+            struct {interval x, y, z;};
+        };
+
         bbox() : bbox(vec3(), vec3()) {}
         bbox(vec3 min, vec3 max) {
             for (int axis = 0; axis < 3; ++axis) {
@@ -105,5 +106,13 @@ class bbox {
             return true;
         }
 };
+
+bbox operator+(const bbox& box, const vec3& offset) {
+    return bbox(box.x + offset.x, box.y + offset.y, box.z + offset.z);
+}
+
+bbox operator+(const vec3& offset, const bbox& box) {
+    return box + offset;
+}
 
 #endif

@@ -26,6 +26,8 @@ struct config {
     // Lens config
     float defocus_angle = 0;            // Variation angle of rays through each pixel
     float focus_dist = 0;               // Distance from camera lens to plane of perfect focus
+
+    vec3 background;
 };
 
 class camera {
@@ -91,16 +93,17 @@ class camera {
 
             hit_record rec;
 
-            if (world.hit(r, interval(0.001, infinity), rec)) {
-                ray scattered;
-                vec3 attenuation;
-                if (rec.mat->scatter(r, rec, attenuation, scattered))
-                    return attenuation * ray_color(scattered, depth - 1, world);
+            if (!world.hit(r, interval(0.001, infinity), rec)) {
+                return background;
             }
 
-            vec3 unit_dir = r.dir().dir();
-            float a = 0.5 * (unit_dir.y + 1.0);
-            return (1.0 - a) * vec3(1.0) + a * vec3(0.5, 0.7, 0.8);
+            ray scattered;
+            vec3 attenuation;
+            vec3 emission = rec.mat->emitted(rec.u, rec.v, rec.pt);
+            if (!rec.mat->scatter(r, rec, attenuation, scattered))
+                return emission;
+            
+            return emission + attenuation * ray_color(scattered, depth - 1, world);
         }
 
     public:
@@ -122,6 +125,8 @@ class camera {
         float defocus_angle;               // Variation angle of rays through each pixel
         float focus_dist;                  // Distance from camera lens to plane of perfect focus
 
+        vec3 background;
+
         camera(struct config cf) : 
             aspect_ratio(cf.aspect_ratio),
             image_width(cf.image_width),
@@ -132,7 +137,8 @@ class camera {
             target(cf.target),
             vup(cf.vup),
             defocus_angle(cf.defocus_angle),
-            focus_dist(cf.focus_dist)
+            focus_dist(cf.focus_dist),
+            background(cf.background)
         {initialize();}
 
         void render(const hittable& world, vector<uint8_t>& pixels) {

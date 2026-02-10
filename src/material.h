@@ -8,6 +8,10 @@ class material {
     public:
         virtual ~material() = default;
 
+        virtual vec3 emitted(float u, float v, const vec3& p) const {
+            return vec3();
+        }
+
         virtual bool scatter(const ray& r_in, const hit_record& rec, vec3& attenuation, ray& scattered) const {
             return false;
         }
@@ -104,6 +108,19 @@ class dielectric : public material {
             
             scattered = ray(position, direction, r_in.time());
             return true;
+        }
+};
+
+class emissive : public material {
+    private:
+        shared_ptr<texture> tex;
+
+    public:
+        emissive(shared_ptr<texture> tex) : tex(tex) {}
+        emissive(const vec3& emit) : tex(make_shared<solid_color>(emit)) {}
+
+        vec3 emitted(float u, float v, const vec3& p) const override {
+            return tex->value(u, v, p);
         }
 };
 

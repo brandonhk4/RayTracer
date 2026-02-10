@@ -36,7 +36,7 @@ class InputParser{
 
         static void helpMessage() {
             cout << "Configurations Options:\n";
-            cout << "\t\t--f (output file)\n";
+            cout << "\t\t--out (output file)\n";
             for (auto it = options.begin(); it != options.end(); ++it) {
                 cout << "\t\t" << *it << '\n';
             }
@@ -53,7 +53,8 @@ vector<string> InputParser::options = {
             "--target",
             "--vertical_up",
             "--defocus_angle",
-            "--focus_distance"
+            "--focus_distance",
+            "--background"
         };
 
 void configure(const InputParser& input, config& cf) {
@@ -88,6 +89,9 @@ void configure(const InputParser& input, config& cf) {
 
     const string focus_dist_str = input.getCmdOption("--focus_distance");
     if (!focus_dist_str.empty()) cf.focus_dist = stod(focus_dist_str);
+
+    const string background_str = input.getCmdOption("--background");
+    if (!background_str.empty()) cf.background = vec3::stov(background_str);
 }
 
 #endif

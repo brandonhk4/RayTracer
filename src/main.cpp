@@ -13,6 +13,7 @@
 #include "sphere.h"
 #include "quad.h"
 #include "triangle.h"
+#include "transform.h"
 #include "camera.h"
 #include "InputParser.h"
 
@@ -119,6 +120,8 @@ hittable_list bouncing_balls(config& cf) {
     cf.defocus_angle = 0.6;
     cf.focus_dist = 10.0;
 
+    cf.background = vec3(0.5, 0.7, 0.8);
+
     return world;
 }
 
@@ -140,6 +143,8 @@ hittable_list checkered_spheres(config& cf) {
     
     cf.defocus_angle = 0.6;
     cf.focus_dist = 10.0;
+
+    cf.background = vec3(0.5, 0.7, 0.8);
     
     return world;
 }
@@ -162,6 +167,8 @@ hittable_list earth(config& cf) {
     cf.defocus_angle = 0.6;
     cf.focus_dist = 10.0;
 
+    cf.background = vec3(0.5, 0.7, 0.8);
+
     return world;
 }
 
@@ -183,6 +190,8 @@ hittable_list perlin_spheres(config& cf) {
     
     cf.defocus_angle = 0.6;
     cf.focus_dist = 10.0;
+
+    cf.background = vec3(0.5, 0.7, 0.8);
 
     return world;
 }
@@ -214,12 +223,108 @@ hittable_list quads(config& cf) {
 
     cf.defocus_angle = 0;
 
+    cf.background = vec3(0.5, 0.7, 0.8);
+
+    return world;
+}
+
+hittable_list simple_light(config& cf) {
+    hittable_list world;
+
+    auto perlin_texture = make_shared<noise_texture>(4);
+    world.add(make_shared<sphere>(vec3(0, -1000, 0), 1000, make_shared<lambertian>(perlin_texture)));
+    world.add(make_shared<sphere>(vec3(0, 2, 0), 2, make_shared<lambertian>(perlin_texture)));
+
+    auto light = make_shared<emissive>(vec3(4));
+    world.add(make_shared<sphere>(vec3(0, 7, 0), 2, light));
+    world.add(make_shared<quad>(vec3(3, 1, -2), vec3(2, 0, 0), vec3(0, 2, 0), light));
+
+    cf.image_width = 1024;
+    cf.aa_samples = 50;
+    cf.max_depth = 16;
+
+    cf.vfov = 20;
+    cf.pos = vec3(26, 3, 6);
+    cf.target = vec3(0, 2, 0);
+
+    cf.defocus_angle = 0;
+
+    return world;
+}
+
+hittable_list cornell_box(config& cf) {
+    hittable_list world;
+
+    auto red   = make_shared<lambertian>(vec3(.65, .05, .05));
+    auto white = make_shared<lambertian>(vec3(.73, .73, .73));
+    auto green = make_shared<lambertian>(vec3(.12, .45, .15));
+    auto light = make_shared<emissive>(vec3(15, 15, 15));
+
+    world.add(make_shared<quad>(vec3(555,0,0), vec3(0,555,0), vec3(0,0,555), green));
+    world.add(make_shared<quad>(vec3(0,0,0), vec3(0,555,0), vec3(0,0,555), red));
+    world.add(make_shared<quad>(vec3(343, 554, 332), vec3(-130,0,0), vec3(0,0,-105), light));
+    world.add(make_shared<quad>(vec3(0,0,0), vec3(555,0,0), vec3(0,0,555), white));
+    world.add(make_shared<quad>(vec3(555,555,555), vec3(-555,0,0), vec3(0,0,-555), white));
+    world.add(make_shared<quad>(vec3(0,0,555), vec3(555,0,0), vec3(0,555,0), white));
+
+    auto box1 = make_shared<transform_o>(box(vec3(), vec3(165, 330, 165), white));
+    box1->rotate(15, transform_o::ROTATE_Y);
+    box1->translate(vec3(265, 0, 295));
+    world.add(box1);
+    
+    auto box2 = make_shared<transform_o>(box(vec3(), vec3(165), white));
+    box2->rotate(-18, transform_o::ROTATE_Y);
+    box2->translate(vec3(130, 0, 65));
+    world.add(box2);
+
+    cf.aspect_ratio = 1.0;
+    cf.image_width = 600;
+    cf.aa_samples = 200;
+    cf.max_depth= 50;
+
+    cf.vfov = 40;
+    cf.pos = vec3(278, 278, -800);
+    cf.target = vec3(278, 278, 0);
+    cf.vup = vec3(0,1,0);
+
+    cf.defocus_angle = 0;
+
+    return world;
+}
+
+hittable_list transform_test(config& cf) {
+    hittable_list world;
+
+    auto white = make_shared<lambertian>(vec3(.73, .73, .73));
+    auto light = make_shared<emissive>(vec3(15, 15, 15));
+
+    world.add(make_shared<quad>(vec3(343, 554, 332), vec3(-130,0,0), vec3(0,0,-105), light));
+
+    shared_ptr<transform_o> box1 = make_shared<transform_o>(box(vec3(), vec3(165, 330, 165), white));
+    box1->rotate(15, transform_o::ROTATE_Z);
+    box1->translate(vec3(265, 160, 295));
+    world.add(box1);
+
+    cf.aspect_ratio = 1.0;
+    cf.image_width = 600;
+    cf.aa_samples = 200;
+    cf.max_depth= 50;
+
+    cf.vfov = 40;
+    cf.pos = vec3(-1000, 278, 0);
+    cf.target = vec3(278, 278, 0);
+    cf.vup = vec3(0,1,0);
+
+    cf.defocus_angle = 0;
+
+    cf.background = vec3(0.5, 0.7, 0.8);
+
     return world;
 }
 
 int main(int argc, char** argv) {
     InputParser input(argc, argv);
-    if (input.cmdOptionExists("-h")) {
+    if (input.cmdOptionExists("-h") || input.cmdOptionExists("--help")) {
         InputParser::helpMessage();
         return -1;
     }
@@ -231,7 +336,7 @@ int main(int argc, char** argv) {
 
     config cf;
 
-    hittable_list world = quads(cf);
+    hittable_list world = cornell_box(cf);
     configure(input, cf);
 
     camera cam(cf);
@@ -247,7 +352,7 @@ int main(int argc, char** argv) {
 
     if (save) {
         bool success = image.saveToFile(output_file);
-        if (success) cout << "Successfully created image.png\n";
+        if (success) cout << "Successfully created " << output_file << '\n';
         else cout << "Failed to write image\n";
     }
 }

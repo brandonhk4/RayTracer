@@ -86,21 +86,23 @@ class vec3 {
         }
 
         static vec3 stov(std::string str) {
-        vec3 out;
-        static std::regex re(
-            "^\\(\\s*(-?\\d+(\\.\\d+)?)\\s*,\\s*(-?\\d+(\\.\\d+)?)\\s*,\\s*(-?\\d+(\\.\\d+)?)\\s*\\)$"
-        );
-        if (std::regex_match(str, re)) {
-            str.erase(0, 1);
-            str.pop_back();
+            std::cout << str;
+            vec3 out;
+            static std::regex re(
+                "^\\(\\s*-?\\d+(.\\d+)?\\s*,\\s*-?\\d+(.\\d+)?\\s*,\\s*-?\\d+(.\\d+)?\\s*\\)$"
+            );
+            if (std::regex_match(str, re)) {
+                std::cout<<"Worked";
+                str.erase(0, 1);
+                str.pop_back();
 
-            std::stringstream ss(str);
-            char comma;
-            
-            ss >> out.x >> comma >> out.y >> comma >> out.z;
+                std::stringstream ss(str);
+                char comma;
+                
+                ss >> out.x >> comma >> out.y >> comma >> out.z;
+            }
+            return out;
         }
-        return out;
-    }
 };
 
 inline std::ostream& operator<<(std::ostream& out, const vec3& v) {
