@@ -275,18 +275,21 @@ class transform_o : public hittable {
             bound_box = object->bounding_box();
         }
 
+        transform_o(transform_o* o) : object(o->object), bound_box(o->bound_box) {}
+
         bool hit(const ray& r, interval ray_t, hit_record& rec) const override {
             return object->hit(r, ray_t, rec);
         }
 
         bbox bounding_box() const override { return bound_box; }
 
-        void translate(const vec3& offset) {
+        shared_ptr<transform_o> translate(const vec3& offset) {
             object = make_shared<translate_o>(object, offset);
             bound_box = object->bounding_box();
+            return make_shared<transform_o>(this);
         }
 
-        void rotate(float theta, type rot_type, bool radians = false) {
+        shared_ptr<transform_o> rotate(float theta, type rot_type, bool radians = false) {
             switch (rot_type) {
                 case ROTATE_X:
                     object = make_shared<rotate_x>(object, theta, radians);
@@ -301,6 +304,7 @@ class transform_o : public hittable {
                     break;
             }
             bound_box = object->bounding_box();
+            return make_shared<transform_o>(this);
         }
 };
 

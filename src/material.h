@@ -81,6 +81,9 @@ class dielectric : public material {
         dielectric(const vec3& albedo, float refract_index) :
                    albedo(albedo), refract_index(refract_index) {}
         
+        dielectric(float refract_index) :
+                   albedo(1), refract_index(refract_index) {}
+        
         bool scatter(const ray& r_in, const hit_record& rec, vec3& attenuation, ray& scattered) const override {
             attenuation = albedo;
             vec3 normal = rec.normal;
@@ -121,6 +124,21 @@ class emissive : public material {
 
         vec3 emitted(float u, float v, const vec3& p) const override {
             return tex->value(u, v, p);
+        }
+};
+
+class isotropic : public material {
+    private:
+        shared_ptr<texture> tex;
+
+    public:
+        isotropic(const vec3& albedo) : tex(make_shared<solid_color>(albedo)) {}
+        isotropic(shared_ptr<texture> tex) : tex(tex) {}
+
+        bool scatter(const ray& r_in, const hit_record& rec, vec3& attenuation, ray& scattered) const override{
+            scattered = ray(rec.pt, random_unit_vector(), r_in.time());
+            attenuation = tex->value(rec.u, rec.v, rec.pt);
+            return true;
         }
 };
 

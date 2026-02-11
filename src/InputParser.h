@@ -21,8 +21,8 @@ class InputParser{
 
         const string& getCmdOption(const string &option) const{
             vector<string>::const_iterator itr;
-            itr =  find(this->tokens.begin(), this->tokens.end(), option);
-            if (itr != this->tokens.end() && ++itr != this->tokens.end()){
+            itr =  find(tokens.begin(), tokens.end(), option);
+            if (itr != tokens.end() && ++itr != tokens.end()){
                 return *itr;
             }
             static const string empty_string("");
@@ -30,8 +30,21 @@ class InputParser{
         }
 
         bool cmdOptionExists(const string &option) const{
-            return find(this->tokens.begin(), this->tokens.end(), option)
-                   != this->tokens.end();
+            return find(tokens.begin(), tokens.end(), option) != tokens.end() - 1;
+        }
+
+        bool valid() const {
+            std::regex re(
+                "^-[1-2].+$"
+            );
+            for (auto it = tokens.begin(); it != tokens.end(); ++it) {
+                if (std::regex_match(*it, re) && 
+                    find(options.begin(), options.end(), *it) == options.end()) {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         static void helpMessage() {
@@ -44,8 +57,14 @@ class InputParser{
 };
 
 vector<string> InputParser::options = {
+            "-h",
+            "--help",
+            "--out",
+            "--bvh",
+            "--display",
+            "--scene",
             "--aspect_ratio",
-            "--image_width",
+            "--width",
             "--aa_samples",
             "--max_depth",
             "--field_of_view",

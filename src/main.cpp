@@ -10,6 +10,7 @@
 #include "hittable_list.h"
 #include "bvh.h"
 #include "material.h"
+#include "constant_medium.h"
 #include "sphere.h"
 #include "quad.h"
 #include "triangle.h"
@@ -292,39 +293,150 @@ hittable_list cornell_box(config& cf) {
     return world;
 }
 
-hittable_list transform_test(config& cf) {
+hittable_list cornell_smoke(config& cf) {
     hittable_list world;
 
+    auto red   = make_shared<lambertian>(vec3(.65, .05, .05));
     auto white = make_shared<lambertian>(vec3(.73, .73, .73));
-    auto light = make_shared<emissive>(vec3(15, 15, 15));
+    auto green = make_shared<lambertian>(vec3(.12, .45, .15));
+    auto light = make_shared<emissive>(vec3(7, 7, 7));
 
-    world.add(make_shared<quad>(vec3(343, 554, 332), vec3(-130,0,0), vec3(0,0,-105), light));
+    world.add(make_shared<quad>(vec3(555,0,0), vec3(0,555,0), vec3(0,0,555), green));
+    world.add(make_shared<quad>(vec3(0,0,0), vec3(0,555,0), vec3(0,0,555), red));
+    world.add(make_shared<quad>(vec3(113,554,127), vec3(330,0,0), vec3(0,0,305), light));
+    world.add(make_shared<quad>(vec3(0,555,0), vec3(555,0,0), vec3(0,0,555), white));
+    world.add(make_shared<quad>(vec3(0,0,0), vec3(555,0,0), vec3(0,0,555), white));
+    world.add(make_shared<quad>(vec3(0,0,555), vec3(555,0,0), vec3(0,555,0), white));
 
-    shared_ptr<transform_o> box1 = make_shared<transform_o>(box(vec3(), vec3(165, 330, 165), white));
-    box1->rotate(15, transform_o::ROTATE_Z);
-    box1->translate(vec3(265, 160, 295));
-    world.add(box1);
+    auto box1 = make_shared<transform_o>(box(vec3(0,0,0), vec3(165,330,165), white));
+    box1->rotate(15, transform_o::ROTATE_Y);
+    box1->translate(vec3(265, 0, 295));
 
-    cf.aspect_ratio = 1.0;
-    cf.image_width = 600;
-    cf.aa_samples = 200;
-    cf.max_depth= 50;
+    auto box2 = make_shared<transform_o>(box(vec3(0,0,0), vec3(165,165,165), white));
+    box2->rotate(-18, transform_o::ROTATE_Y);
+    box2->translate(vec3(130, 0, 65));
 
-    cf.vfov = 40;
-    cf.pos = vec3(-1000, 278, 0);
-    cf.target = vec3(278, 278, 0);
-    cf.vup = vec3(0,1,0);
+    world.add(make_shared<constant_medium>(box1, 0.01, vec3(0,0,0)));
+    world.add(make_shared<constant_medium>(box2, 0.01, vec3(1,1,1)));
+
+    cf.aspect_ratio      = 1.0;
+    cf.image_width       = 600;
+    cf.aa_samples        = 200;
+    cf.max_depth         = 50;
+
+    cf.vfov     = 40;
+    cf.pos      = vec3(278, 278, -800);
+    cf.target   = vec3(278, 278, 0);
+    cf.vup      = vec3(0,1,0);
 
     cf.defocus_angle = 0;
 
-    cf.background = vec3(0.5, 0.7, 0.8);
+    return world;
+}
+
+hittable_list test(config& cf) {
+    hittable_list world;
+
+    auto perlin_texture = make_shared<noise_texture>(4);
+    world.add(make_shared<sphere>(vec3(0, -1000, 0), 1000, make_shared<lambertian>(perlin_texture)));
+    world.add(make_shared<sphere>(vec3(0, 2, 0), 2, make_shared<lambertian>(perlin_texture)));
+
+    auto light = make_shared<emissive>(vec3(4));
+    auto trans = make_shared<dielectric>(vec3(0.2, 0.6, 0.3), 1.5);
+    world.add(make_shared<sphere>(vec3(0, 7, 0), 2, light));
+    world.add(make_shared<sphere>(vec3(0, 7, 0), 2.3, trans));
+
+    cf.image_width = 1024;
+    cf.aa_samples = 50;
+    cf.max_depth = 16;
+
+    cf.vfov = 20;
+    cf.pos = vec3(26, 3, 6);
+    cf.target = vec3(0, 2, 0);
+
+    cf.defocus_angle = 0;
+
+    return world;
+}
+
+hittable_list final_scene(config& cf) {
+    hittable_list world;
+
+    hittable_list boxes1;
+    auto ground = make_shared<lambertian>(vec3(0.48, 0.83, 0.53));
+
+    int boxes_per_side = 20;
+    for (int i = 0; i < boxes_per_side; i++) {
+        for (int j = 0; j < boxes_per_side; j++) {
+            auto w = 100.0;
+            auto x0 = -1000.0 + i*w;
+            auto z0 = -1000.0 + j*w;
+            auto y0 = 0.0;
+            auto x1 = x0 + w;
+            auto y1 = random_float(1,101);
+            auto z1 = z0 + w;
+
+            boxes1.add(box(vec3(x0,y0,z0), vec3(x1,y1,z1), ground));
+        }
+    }
+
+    world.add(make_shared<bvh_node>(boxes1));
+
+    auto light = make_shared<emissive>(vec3(7));
+    world.add(make_shared<quad>(vec3(123,554,147), vec3(300,0,0), vec3(0,0,265), light));
+
+    auto center1 = vec3(400, 400, 200);
+    auto center2 = center1 + vec3(30,0,0);
+    auto sphere_material = make_shared<lambertian>(vec3(0.7, 0.3, 0.1));
+    world.add(make_shared<sphere>(center1, center2, 50, sphere_material));
+
+    world.add(make_shared<sphere>(vec3(260, 150, 45), 50, make_shared<dielectric>(1.5)));
+    world.add(make_shared<sphere>(
+        vec3(0, 150, 145), 50, make_shared<fuzzy>(vec3(0.8, 0.8, 0.9), 1.0)
+    ));
+
+    auto boundary = make_shared<sphere>(vec3(360,150,145), 70, make_shared<dielectric>(1.5));
+    world.add(boundary);
+    world.add(make_shared<constant_medium>(boundary, 0.2, vec3(0.2, 0.4, 0.9)));
+    boundary = make_shared<sphere>(vec3(0,0,0), 5000, make_shared<dielectric>(1.5));
+    world.add(make_shared<constant_medium>(boundary, .0001, vec3(1,1,1)));
+
+    auto emat = make_shared<lambertian>(make_shared<image_texture>("images/earth.jpg"));
+    world.add(make_shared<sphere>(vec3(400,200,400), 100, emat));
+    auto pertext = make_shared<noise_texture>(0.2);
+    world.add(make_shared<sphere>(vec3(220,280,300), 80, make_shared<lambertian>(pertext)));
+
+    hittable_list boxes2;
+    auto white = make_shared<lambertian>(vec3(.73, .73, .73));
+    int ns = 1000;
+    for (int j = 0; j < ns; j++) {
+        boxes2.add(make_shared<sphere>(vec3::random(0,165), 10, white));
+    }
+
+    world.add(make_shared<transform_o>(
+        make_shared<bvh_node>(boxes2))
+            ->rotate(15, transform_o::ROTATE_Y)
+            ->translate(vec3(-100,270,395))
+    );
+
+    cf.aspect_ratio      = 1.0;
+    cf.image_width       = 400;
+    cf.aa_samples        = 250;
+    cf.max_depth         = 4;
+
+    cf.vfov     = 40;
+    cf.pos      = vec3(478, 278, -600);
+    cf.target   = vec3(278, 278, 0);
+    cf.vup      = vec3(0,1,0);
+
+    cf.defocus_angle = 0;
 
     return world;
 }
 
 int main(int argc, char** argv) {
     InputParser input(argc, argv);
-    if (input.cmdOptionExists("-h") || input.cmdOptionExists("--help")) {
+    if (input.cmdOptionExists("-h") || input.cmdOptionExists("--help") || !input.valid()) {
         InputParser::helpMessage();
         return -1;
     }
@@ -332,11 +444,48 @@ int main(int argc, char** argv) {
     string output_file = input.getCmdOption("--out");
     bool save = !output_file.empty();
 
+    bool window_display = input.cmdOptionExists("--display");
+
     bool tree = input.cmdOptionExists("--bvh");
+
+    int scene = 0;
+    string scene_str = input.getCmdOption("--scene");
+    if (!scene_str.empty()) scene = stoi(scene_str);
 
     config cf;
 
-    hittable_list world = cornell_box(cf);
+    hittable_list world;
+    switch (scene) {
+        default:
+        case 1:
+            world = bouncing_balls(cf);
+            break;
+        case 2:
+            world = checkered_spheres(cf);
+            break;
+        case 3:
+            world = earth(cf);
+            break;
+        case 4:
+            world = perlin_spheres(cf);
+            break;
+        case 5:
+            world = quads(cf);
+            break;
+        case 6:
+            world = simple_light(cf);
+            break;
+        case 7:
+            world = cornell_box(cf);
+            break;
+        case 8:
+            world = cornell_smoke(cf);
+            break;
+        case 9:
+            world = final_scene(cf);
+            break;
+    }
+
     configure(input, cf);
 
     camera cam(cf);
@@ -344,15 +493,26 @@ int main(int argc, char** argv) {
 
     vector<uint8_t> pixels(cam.width() * cam.height() * 4);
 
-    thread render(&camera::render, &cam, std::ref(world), std::ref(pixels));
+    if (window_display) {
+        thread render(&camera::render, &cam, std::ref(world), std::ref(pixels));
 
-    sf::Image image(display(pixels, { (unsigned int)cam.width(), (unsigned int)cam.height() }));
+        sf::Image image(display(pixels, { (unsigned int)cam.width(), (unsigned int)cam.height() }));
 
-    render.join();
+        render.join();
 
-    if (save) {
-        bool success = image.saveToFile(output_file);
-        if (success) cout << "Successfully created " << output_file << '\n';
-        else cout << "Failed to write image\n";
+        if (save) {
+            bool success = image.saveToFile(output_file);
+            if (success) cout << "Successfully created " << output_file << '\n';
+            else cout << "Failed to write image\n";
+        }
+    } else {
+        cam.render(world, pixels);
+
+        if (save) {
+            sf::Image image({ (unsigned int)cam.width(), (unsigned int)cam.height() }, pixels.data());
+            bool success = image.saveToFile(output_file);
+            if (success) cout << "Successfully created " << output_file << '\n';
+            else cout << "Failed to write image\n";
+        }
     }
 }
