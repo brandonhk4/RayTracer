@@ -3,6 +3,7 @@
 
 #include "hittable.h"
 #include "material.h"
+#include <thread>
 
 #include <string>
 
@@ -12,6 +13,8 @@ struct config {
     // Screen config
     float aspect_ratio = 16.0 / 9.0;   // Ratio of image width over height
     int image_width = 1024;            // Rendered image width in pixel count
+    int tw = 16;
+    int th =  9;
 
     // Render config
     int aa_samples = 20;                // Count of random samples for each pixel for antialiasing
@@ -38,6 +41,7 @@ class camera {
         vec3 pixel_delta_v;         // Vertical offset of pixel
         vec3 defocus_disk_u;        // Horizontal disk radius
         vec3 defocus_disk_v;        // Vertial disk radius
+        int tw, th;
         
         void initialize() {
             image_height = max(int(image_width / aspect_ratio), 1);
@@ -106,6 +110,20 @@ class camera {
             return emission + attenuation * ray_color(scattered, depth - 1, world);
         }
 
+        void pixel_color(const hittable* world, vector<uint8_t>* pixels, int i, int j) {
+            for (int _i = i; _i < i + tw; ++_i){
+                for (int _j = j; _j < j + th; ++_j){
+                    vec3 pixel_color;
+                    for (int sample = 0; sample < aa_samples; ++sample) {
+                        ray r = get_ray(_i, _j);
+                        pixel_color += ray_color(r, max_depth, *world) / aa_samples;
+                    }
+
+                    write_color(*pixels, pixel_color, (_i + _j * image_width) * 4);
+                }    
+            }
+        }
+
     public:
         // Screen config
         float aspect_ratio;                // Ratio of image width over height
@@ -130,6 +148,8 @@ class camera {
         camera(struct config cf) : 
             aspect_ratio(cf.aspect_ratio),
             image_width(cf.image_width),
+            tw(cf.tw),
+            th(cf.th),
             aa_samples(cf.aa_samples),
             max_depth(cf.max_depth),
             vfov(cf.vfov),
@@ -141,22 +161,18 @@ class camera {
             background(cf.background)
         {initialize();}
 
-        void render(const hittable& world, vector<uint8_t>& pixels) {
-            auto it = pixels.begin();
-            for (int j = 0; j < image_height; j++) {
+        void render(const hittable& world, vector<uint8_t>& pixels, vector<thread>& threads) {
+            for (int j = 0; j < image_height; j+=th) {
                 clog << "\rScanlines remaining: " << (image_height - j) << ' ' << flush;
-                for (int i = 0; i < image_width; i++) {
-                    vec3 pixel_color;
-                    for (int sample = 0; sample < aa_samples; ++sample) {
-                        ray r = get_ray(i, j);
-                        pixel_color += ray_color(r, max_depth, world) / aa_samples;
-                    }
-
-                    write_color(it, pixel_color);
+                for (int i = 0; i < image_width; i+=tw) {
+                    threads.emplace_back(&camera::pixel_color, this, &world, &pixels, i, j);
+                    threads[threads.size() - 1].detach();
                 }
             }
+
             clog << "\rDone.                 \n";
         }
+
         //move this to gpu later
         void generate_rays(float pts[], float dirs[]) {
             for (int j = 0; j < image_height; j++) {

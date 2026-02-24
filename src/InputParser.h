@@ -16,7 +16,7 @@ class InputParser{
 
         InputParser (int &argc, char **argv) : argc(argc) {
             for (int i=1; i < argc; ++i)
-                this->tokens.push_back(string(argv[i]));
+                this->tokens.emplace_back(argv[i]);
         }
 
         const string& getCmdOption(const string &option) const{
@@ -30,12 +30,12 @@ class InputParser{
         }
 
         bool cmdOptionExists(const string &option) const{
-            return find(tokens.begin(), tokens.end(), option) != tokens.end() - 1;
+            return find(tokens.begin(), tokens.end(), option) != tokens.end();
         }
 
         bool valid() const {
             std::regex re(
-                "^-[1-2].+$"
+                "^-[1-2].+\\s$"
             );
             for (auto it = tokens.begin(); it != tokens.end(); ++it) {
                 if (std::regex_match(*it, re) && 

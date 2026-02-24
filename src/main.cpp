@@ -30,6 +30,7 @@ sf::Image display(vector<uint8_t>& pixels, sf::Vector2u size) {
 
     window.draw(sprite);
     window.display();
+    cout << "Attempting to show window\n";
     while (window.isOpen())
     {
         // check all the window's events that were triggered since the last iteration of the loop
@@ -280,6 +281,8 @@ hittable_list cornell_box(config& cf) {
 
     cf.aspect_ratio = 1.0;
     cf.image_width = 600;
+    cf.tw = 50;
+    cf.th = 50;
     cf.aa_samples = 200;
     cf.max_depth= 50;
 
@@ -321,6 +324,8 @@ hittable_list cornell_smoke(config& cf) {
 
     cf.aspect_ratio      = 1.0;
     cf.image_width       = 600;
+    cf.tw = 50;
+    cf.th = 50;
     cf.aa_samples        = 200;
     cf.max_depth         = 50;
 
@@ -421,6 +426,8 @@ hittable_list final_scene(config& cf) {
 
     cf.aspect_ratio      = 1.0;
     cf.image_width       = 400;
+    cf.tw = 50;
+    cf.th = 50;
     cf.aa_samples        = 250;
     cf.max_depth         = 4;
 
@@ -443,8 +450,10 @@ int main(int argc, char** argv) {
 
     string output_file = input.getCmdOption("--out");
     bool save = !output_file.empty();
+    if (save) cout << "Saving to " << output_file << '\n';
 
     bool window_display = input.cmdOptionExists("--display");
+    if (window_display) cout << "Showing display\n";
 
     bool tree = input.cmdOptionExists("--bvh");
 
@@ -492,13 +501,17 @@ int main(int argc, char** argv) {
     if (tree) world = hittable_list(make_shared<bvh_node>(world));
 
     vector<uint8_t> pixels(cam.width() * cam.height() * 4);
+    vector<thread> threads;
+    threads.reserve(cam.width() * cam.height() / (cf.tw * cf.th));
 
     if (window_display) {
-        thread render(&camera::render, &cam, std::ref(world), std::ref(pixels));
+        thread render(&camera::render, &cam, ref(world), ref(pixels), ref(threads));
+        render.detach();
 
         sf::Image image(display(pixels, { (unsigned int)cam.width(), (unsigned int)cam.height() }));
 
-        render.join();
+        // if (render.joinable()) render.join();
+        // for (thread& t : threads) if (t.joinable()) t.join();
 
         if (save) {
             bool success = image.saveToFile(output_file);
@@ -506,7 +519,8 @@ int main(int argc, char** argv) {
             else cout << "Failed to write image\n";
         }
     } else {
-        cam.render(world, pixels);
+        cam.render(world, pixels, threads);
+        for (thread& t : threads) t.join();
 
         if (save) {
             sf::Image image({ (unsigned int)cam.width(), (unsigned int)cam.height() }, pixels.data());

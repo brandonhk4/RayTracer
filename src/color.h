@@ -42,4 +42,20 @@ void write_color(std::vector<std::uint8_t>::iterator& pixels, const vec3& pixel_
     *pixels = static_cast<std::uint8_t>(255); ++pixels;
 }
 
+void write_color(std::vector<std::uint8_t>& pixels, const vec3& pixel_color, int i) {
+    float r = pixel_color.x;
+    float g = pixel_color.y;
+    float b = pixel_color.z;
+
+    r = linear_to_gamma(r);
+    g = linear_to_gamma(g);
+    b = linear_to_gamma(b);
+
+    static const interval intensity(0.0, 0.999);
+    pixels[i] = static_cast<std::uint8_t>(std::floor(256 * intensity.clamp(r)));
+    pixels[i + 1] = static_cast<std::uint8_t>(std::floor(256 * intensity.clamp(g)));
+    pixels[i + 2] = static_cast<std::uint8_t>(std::floor(256 * intensity.clamp(b)));
+    pixels[i + 3] = static_cast<std::uint8_t>(255);
+}
+
 #endif
