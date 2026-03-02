@@ -11,16 +11,16 @@ using std::make_shared;
 using std::shared_ptr;
 
 const float infinity = std::numeric_limits<float>::infinity();
-const float pi = 3.141592653589793285;
+const float pi = 3.141592653589793285f;
 
 // Utitlity Functions
 
 inline float degrees_to_radians(float degrees) {
-    return degrees * pi / 180.0;
+    return degrees * pi / 180.0f;
 }
 
 inline float random_float() {
-    static std::uniform_real_distribution<float> dist(0.0, 1.0);
+    static std::uniform_real_distribution<float> dist(0.0f, 1.0f);
     static std::mt19937 gen;
     return dist(gen);
 }

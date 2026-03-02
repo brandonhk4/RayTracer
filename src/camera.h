@@ -11,24 +11,24 @@ using namespace std;
 
 struct config {
     // Screen config
-    float aspect_ratio = 16.0 / 9.0;   // Ratio of image width over height
-    int image_width = 1024;            // Rendered image width in pixel count
+    float aspect_ratio = 16.0f / 9.0f;    // Ratio of image width over height
+    int image_width = 1024;               // Rendered image width in pixel count
     int tw = 16;
     int th =  9;
 
     // Render config
-    int aa_samples = 20;                // Count of random samples for each pixel for antialiasing
-    int max_depth = 16;                 // Maximum number of ray bounce recursions
+    int aa_samples = 20;                   // Count of random samples for each pixel for antialiasing
+    int max_depth = 16;                    // Maximum number of ray bounce recursions
     
     // Camera config
-    float vfov = 90;                    // Vertical view angle (field of view)
-    vec3 pos;                           // Point camera is at
-    vec3 target = vec3(0, 0, -1);       // Point camera is looking at
-    vec3 vup = vec3(0, 1, 0);           // Camera "up" direction. Change to roll camera.
+    float vfov = 90.0f;                    // Vertical view angle (field of view)
+    vec3 pos;                              // Point camera is at
+    vec3 target = vec3(0.0f, 0.0f, -1.0f); // Point camera is looking at
+    vec3 vup = vec3(0.0f, 1.0f, 0.0f);     // Camera "up" direction. Change to roll camera.
 
     // Lens config
-    float defocus_angle = 0;            // Variation angle of rays through each pixel
-    float focus_dist = 0;               // Distance from camera lens to plane of perfect focus
+    float defocus_angle = 0.0f;            // Variation angle of rays through each pixel
+    float focus_dist = 0.0f;               // Distance from camera lens to plane of perfect focus
 
     vec3 background;
 };
@@ -53,8 +53,8 @@ class camera {
 
             // Viewport dimensions
             if (focus_dist == 0) focus_dist = (target - pos).length();
-            float h = tan(degrees_to_radians(vfov) / 2);
-            float viewport_height = 2.0 * h * focus_dist;
+            float h = tan(degrees_to_radians(vfov) / 2.0f);
+            float viewport_height = 2.0f * h * focus_dist;
             float viewport_width = viewport_height * (float(image_width) / image_height);
 
             vec3 viewport_u = viewport_width * right;
@@ -64,8 +64,8 @@ class camera {
             pixel_delta_v = viewport_v / image_height;
 
             vec3 viewport_upper_left = pos + focus_dist * forward -
-                                    viewport_u / 2 - viewport_v / 2;
-            pixel_center00 = viewport_upper_left + 0.5 * (pixel_delta_u + pixel_delta_v);
+                                    viewport_u / 2.0f - viewport_v / 2.0f;
+            pixel_center00 = viewport_upper_left + 0.5f * (pixel_delta_u + pixel_delta_v);
 
             float defocus_radius = focus_dist * tan(degrees_to_radians(defocus_angle) / 2);
             defocus_disk_u = defocus_radius * right;
@@ -78,12 +78,12 @@ class camera {
         }
 
         ray get_ray(int i, int j) const{
-            vec3 offset = vec3(random_float() - 0.5, random_float() - 0.5, 0);
+            vec3 offset = vec3(random_float() - 0.5f, random_float() - 0.5f, 0.0f);
             vec3 pixel_sample = pixel_center00 + 
                                 ((i + offset.x) * pixel_delta_u) + 
                                 ((j + offset.y) * pixel_delta_v);
 
-            vec3 ray_pos = (defocus_angle <= 0) ? pos : defocus_disk_sample();
+            vec3 ray_pos = (defocus_angle <= 0.0f) ? pos : defocus_disk_sample();
 
             vec3 ray_dir = pixel_sample - ray_pos;
 
@@ -97,7 +97,7 @@ class camera {
 
             hit_record rec;
 
-            if (!world.hit(r, interval(0.001, infinity), rec)) {
+            if (!world.hit(r, interval(0.001f, infinity), rec)) {
                 return background;
             }
 
@@ -166,7 +166,7 @@ class camera {
                 clog << "\rScanlines remaining: " << (image_height - j) << ' ' << flush;
                 for (int i = 0; i < image_width; i+=tw) {
                     threads.emplace_back(&camera::pixel_color, this, &world, &pixels, i, j);
-                    threads[threads.size() - 1].detach();
+                    // threads[threads.size() - 1].detach();
                 }
             }
 
@@ -180,11 +180,11 @@ class camera {
                     vec3 pixel_color;
                     for (int sample = 0; sample < aa_samples; ++sample) {
                         ray r = get_ray(i, j);
-                        pts[sample * image_height * image_width * 4 + j * image_width * 4 + i * 4] = r.pt().x;
-                        pts[sample * image_height * image_width * 4 + j * image_width * 4 + i * 4 + 1] = r.pt().y;
-                        pts[sample * image_height * image_width * 4 + j * image_width * 4 + i * 4 + 2] = r.pt().z;
-                        pts[sample * image_height * image_width * 4 + j * image_width * 4 + i * 4 + 3] = 0;
-                        dirs[sample * image_height * image_width * 4 + j * image_width * 4 + i * 4] = r.dir().x;
+                        pts[ sample * image_height * image_width * 4 + j * image_width * 4 + i * 4]     = r.pt().x;
+                        pts[ sample * image_height * image_width * 4 + j * image_width * 4 + i * 4 + 1] = r.pt().y;
+                        pts[ sample * image_height * image_width * 4 + j * image_width * 4 + i * 4 + 2] = r.pt().z;
+                        pts[ sample * image_height * image_width * 4 + j * image_width * 4 + i * 4 + 3] = 0;
+                        dirs[sample * image_height * image_width * 4 + j * image_width * 4 + i * 4]     = r.dir().x;
                         dirs[sample * image_height * image_width * 4 + j * image_width * 4 + i * 4 + 1] = r.dir().y;
                         dirs[sample * image_height * image_width * 4 + j * image_width * 4 + i * 4 + 2] = r.dir().z;
                         dirs[sample * image_height * image_width * 4 + j * image_width * 4 + i * 4 + 3] = 0;

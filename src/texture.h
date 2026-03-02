@@ -57,10 +57,10 @@ class image_texture : public texture {
 
         vec3 value(float u, float v, const vec3& p) const override {
             // If no texture data, return cyan to debug
-            if (image.height() <= 0) return vec3(0, 1, 1);
+            if (image.height() <= 0) return vec3(0.0f, 1.0f, 1.0f);
 
-            u = interval(0, 1).clamp(u);
-            v = 1.0 - interval(0, 1).clamp(v);
+            u = interval(0.0f, 1.0f).clamp(u);
+            v = 1.0f - interval(0.0f, 1.0f).clamp(v);
 
             int i = int(u * image.width());
             int j = int(v * image.height());
@@ -78,10 +78,10 @@ class noise_texture : public texture {
         int turbulence;
     
     public:
-        noise_texture(float scale = 1, int turbulence = 1) : scale(scale), turbulence(turbulence) {}
+        noise_texture(float scale = 1.0f, int turbulence = 1) : scale(scale), turbulence(turbulence) {}
         
         vec3 value(float u, float v, const vec3& p) const override {
-            return vec3(1) * noise.turb(p * scale, turbulence);
+            return vec3(1.0f) * noise.turb(p * scale, turbulence);
         }
 };
 

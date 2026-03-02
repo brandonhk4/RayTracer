@@ -80,7 +80,7 @@ void configure(const InputParser& input, config& cf) {
     if (input.argc <= 1) return;
 
     const string aspect_ratio_str = input.getCmdOption("--aspect_ratio");
-    if (!aspect_ratio_str.empty()) cf.aspect_ratio = stod(aspect_ratio_str);
+    if (!aspect_ratio_str.empty()) cf.aspect_ratio = stof(aspect_ratio_str);
     
     const string image_width_str = input.getCmdOption("--width");
     if (!image_width_str.empty()) cf.image_width = stoi(image_width_str);
@@ -92,7 +92,7 @@ void configure(const InputParser& input, config& cf) {
     if (!max_depth_str.empty()) cf.max_depth = stoi(max_depth_str);
 
     const string vfov_str = input.getCmdOption("--field_of_view");
-    if (!vfov_str.empty()) cf.vfov = stod(vfov_str);
+    if (!vfov_str.empty()) cf.vfov = stof(vfov_str);
 
     const string pos_str = input.getCmdOption("--position");
     if (!pos_str.empty()) cf.pos = vec3::stov(pos_str);
@@ -104,10 +104,10 @@ void configure(const InputParser& input, config& cf) {
     if (!vup_str.empty()) cf.vup = vec3::stov(vup_str);
 
     const string defocus_angle_str = input.getCmdOption("--defocus_angle");
-    if (!defocus_angle_str.empty()) cf.defocus_angle = stod(defocus_angle_str);
+    if (!defocus_angle_str.empty()) cf.defocus_angle = stof(defocus_angle_str);
 
     const string focus_dist_str = input.getCmdOption("--focus_distance");
-    if (!focus_dist_str.empty()) cf.focus_dist = stod(focus_dist_str);
+    if (!focus_dist_str.empty()) cf.focus_dist = stof(focus_dist_str);
 
     const string background_str = input.getCmdOption("--background");
     if (!background_str.empty()) cf.background = vec3::stov(background_str);

@@ -45,7 +45,7 @@ class quad : public hittable {
             float a = u_det / det;
             float b = v_det / det;
 
-            interval i(0, 1);
+            interval i(0.0f, 1.0f);
             if (!i.contains(a) || !i.contains(b)) return false;
             
             float t_det = determinant(OQ, u, v);
@@ -57,7 +57,7 @@ class quad : public hittable {
             rec.t = t;
             rec.pt = P;
             rec.mat = mat;
-            rec.normal = dot(n, r.dir()) < 0? n : -n;
+            rec.normal = dot(n, r.dir()) < 0.0f? n : -n;
             rec.u = a;
             rec.v = b;
 
@@ -73,9 +73,9 @@ inline shared_ptr<hittable_list> box(const vec3& a, const vec3& b, shared_ptr<ma
     vec3 min = vec3(std::fmin(a.x, b.x), std::fmin(a.y, b.y), std::fmin(a.z, b.z));
     vec3 max = vec3(std::fmax(a.x, b.x), std::fmax(a.y, b.y), std::fmax(a.z, b.z));
 
-    vec3 dx = vec3(max.x - min.x, 0, 0);
-    vec3 dy = vec3(0, max.y - min.y, 0);
-    vec3 dz = vec3(0, 0, max.z - min.z);
+    vec3 dx = vec3(max.x - min.x, 0.0f, 0.0f);
+    vec3 dy = vec3(0.0f, max.y - min.y, 0.0f);
+    vec3 dz = vec3(0.0f, 0.0f, max.z - min.z);
 
     sides->add(make_shared<quad>(vec3(min.x, min.y, max.z), dx, dy, mat));  // front
     sides->add(make_shared<quad>(vec3(max.x, min.y, max.z), -dz, dy, mat)); // right

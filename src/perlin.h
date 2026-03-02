@@ -28,7 +28,7 @@ class perlin {
             float uu = u * u * (3 - 2 * u);
             float vv = v * v * (3 - 2 * v);
             float ww = w * w * (3 - 2 * w);
-            float accum = 0.0;
+            float accum = 0.0f;
 
             for (int i = 0; i < 2; ++i) {
                 for (int j = 0; j < 2; ++j) {
@@ -83,14 +83,14 @@ class perlin {
         }
 
         double turb(const vec3& p, int depth) const {
-            float accum = 0.0;
+            float accum = 0.0f;
             vec3 temp = p;
-            float weight = 1.0;
+            float weight = 1.0f;
 
             for (int i = 0; i < depth; ++i) {
                 accum += weight * noise(temp);
-                weight *= 0.5;
-                temp *= 2;
+                weight *= 0.5f;
+                temp *= 2.0f;
             }
 
             return std::fabs(accum);

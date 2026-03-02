@@ -66,63 +66,63 @@ sf::Image display(vector<uint8_t>& pixels, sf::Vector2u size) {
 hittable_list bouncing_balls(config& cf) {
     hittable_list world;
 
-    auto checker = make_shared<checker_texture>(.32, vec3(.1, .3, .2), vec3(.9, .9, .9));
+    auto checker = make_shared<checker_texture>(.32f, vec3(.1f, .3f, .2f), vec3(.9f, .9f, .9f));
     shared_ptr<lambertian> ground_mat = make_shared<lambertian>(checker);
-    world.add(make_shared<sphere>(vec3(0, -1000, 0), 1000, ground_mat));
+    world.add(make_shared<sphere>(vec3(0.0f, -1000.0f, 0.0f), 1000.0f, ground_mat));
 
     for (int a = -10; a < 10; ++a) {
         for (int b = -10; b < 10; ++b) {
             double choose_mat = random_float();
-            vec3 center = vec3(a + 0.9 * random_float(), 0.2, b + 0.9 * random_float());
+            vec3 center = vec3(a + 0.9f * random_float(), 0.2f, b + 0.9f * random_float());
 
-            if ((center - vec3(4, 0.2, 0)).length() > 0.9) {
+            if ((center - vec3(4.0f, 0.2f, 0.0f)).length() > 0.9f) {
                 shared_ptr<material> sphere_mat;
 
-                if (choose_mat < 0.8) {
+                if (choose_mat < 0.8f) {
                     // diffuse
                     vec3 albedo = vec3::random();
                     sphere_mat = make_shared<lambertian>(albedo);
-                    vec3 center2 = center + vec3(0, random_float(0, .5), 0);
-                    world.add(make_shared<sphere>(center, center2, 0.2, sphere_mat));
-                } else if (choose_mat < 0.95) {
+                    vec3 center2 = center + vec3(0.0f, random_float(0.0f, .5f), 0.0f);
+                    world.add(make_shared<sphere>(center, center2, 0.2f, sphere_mat));
+                } else if (choose_mat < 0.95f) {
                     // reflective
                     vec3 albedo = vec3::random();
-                    double fuzz = random_float(0, 0.5);
+                    double fuzz = random_float(0.0f, 0.5f);
                     sphere_mat = make_shared<fuzzy>(albedo, fuzz);
-                    world.add(make_shared<sphere>(center, 0.2, sphere_mat));
+                    world.add(make_shared<sphere>(center, 0.2f, sphere_mat));
                 } else {
                     // glass
-                    vec3 albedo = vec3::random(0.8, 1.0);
-                    sphere_mat = make_shared<dielectric>(albedo, 1.5);
-                    world.add(make_shared<sphere>(center, 0.2, sphere_mat));
+                    vec3 albedo = vec3::random(0.8f, 1.0f);
+                    sphere_mat = make_shared<dielectric>(albedo, 1.5f);
+                    world.add(make_shared<sphere>(center, 0.2f, sphere_mat));
                 }
             }
         }
     }
 
-    shared_ptr<lambertian> matte_mat = make_shared<lambertian>(vec3(0.4, 0.6, 0.4));
-    world.add(make_shared<sphere>(vec3(-4, 1, 0), 1, matte_mat));
+    shared_ptr<lambertian> matte_mat = make_shared<lambertian>(vec3(0.4f, 0.6f, 0.4f));
+    world.add(make_shared<sphere>(vec3(-4.0f, 1.0f, 0.0f), 1.0f, matte_mat));
     
-    shared_ptr<reflective> reflect_mat = make_shared<reflective>(vec3(0.3, 0.3, 0.3));
-    world.add(make_shared<sphere>(vec3(0, 1, 0), 1, reflect_mat));
+    shared_ptr<reflective> reflect_mat = make_shared<reflective>(vec3(0.3f, 0.3f, 0.3f));
+    world.add(make_shared<sphere>(vec3(0.0f, 1.0f, 0.0f), 1.0f, reflect_mat));
 
-    shared_ptr<dielectric> di_mat = make_shared<dielectric>(vec3(1.0), 1.5);
-    shared_ptr<dielectric> bubble_mat = make_shared<dielectric>(vec3(1.0), 1.0 / 1.5);
-    world.add(make_shared<sphere>(vec3(4, 1, 0), 1, di_mat));
-    world.add(make_shared<sphere>(vec3(4, 1, 0), .9, bubble_mat));
+    shared_ptr<dielectric> di_mat = make_shared<dielectric>(vec3(1.0f), 1.5f);
+    shared_ptr<dielectric> bubble_mat = make_shared<dielectric>(vec3(1.0f), 1.0f / 1.5f);
+    world.add(make_shared<sphere>(vec3(4.0f, 1.0f, 0.0f), 1.0f, di_mat));
+    world.add(make_shared<sphere>(vec3(4.0f, 1.0f, 0.0f), .9f, bubble_mat));
 
     cf.image_width = 1024;
     cf.aa_samples = 50;
     cf.max_depth = 16;
 
-    cf.vfov = 20;
-    cf.pos = vec3(13, 2, 3);
+    cf.vfov = 20.0f;
+    cf.pos = vec3(13.0f, 2.0f, 3.0f);
     cf.target = vec3();
     
-    cf.defocus_angle = 0.6;
-    cf.focus_dist = 10.0;
+    cf.defocus_angle = 0.6f;
+    cf.focus_dist = 10.0f;
 
-    cf.background = vec3(0.5, 0.7, 0.8);
+    cf.background = vec3(0.5f, 0.7f, 0.8f);
 
     return world;
 }
@@ -130,23 +130,23 @@ hittable_list bouncing_balls(config& cf) {
 hittable_list checkered_spheres(config& cf) {
     hittable_list world;
 
-    auto checker = make_shared<checker_texture>(0.32, vec3(.2, .3, .1), vec3(.9, .9, .9));
+    auto checker = make_shared<checker_texture>(0.32f, vec3(.2f, .3f, .1f), vec3(.9f, .9f, .9f));
 
-    world.add(make_shared<sphere>(vec3(0,-10, 0), 10, make_shared<lambertian>(checker)));
-    world.add(make_shared<sphere>(vec3(0, 10, 0), 10, make_shared<lambertian>(checker)));
+    world.add(make_shared<sphere>(vec3(0.0f,-10.0f, 0.0f), 10.0f, make_shared<lambertian>(checker)));
+    world.add(make_shared<sphere>(vec3(0.0f, 10.0f, 0.0f), 10.0f, make_shared<lambertian>(checker)));
     
     cf.image_width = 1024;
     cf.aa_samples = 50;
     cf.max_depth = 16;
 
-    cf.vfov = 20;
-    cf.pos = vec3(13, 2, 3);
+    cf.vfov = 20.0f;
+    cf.pos = vec3(13.0f, 2.0f, 3.0f);
     cf.target = vec3();
     
-    cf.defocus_angle = 0.6;
-    cf.focus_dist = 10.0;
+    cf.defocus_angle = 0.6f;
+    cf.focus_dist = 10.0f;
 
-    cf.background = vec3(0.5, 0.7, 0.8);
+    cf.background = vec3(0.5f, 0.7f, 0.8f);
     
     return world;
 }
@@ -156,20 +156,20 @@ hittable_list earth(config& cf) {
 
     auto earth_texture = make_shared<image_texture>("earth.jpg");
     auto earth_surface = make_shared<lambertian>(earth_texture);
-    world.add(make_shared<sphere>(vec3(), 2, earth_surface));
+    world.add(make_shared<sphere>(vec3(), 2.0f, earth_surface));
 
     cf.image_width = 1024;
     cf.aa_samples = 50;
     cf.max_depth = 16;
 
-    cf.vfov = 20;
-    cf.pos = vec3(13, 2, 3);
+    cf.vfov = 20.0f;
+    cf.pos = vec3(13.0f, 2.0f, 3.0f);
     cf.target = vec3();
     
-    cf.defocus_angle = 0.6;
-    cf.focus_dist = 10.0;
+    cf.defocus_angle = 0.6f;
+    cf.focus_dist = 10.0f;
 
-    cf.background = vec3(0.5, 0.7, 0.8);
+    cf.background = vec3(0.5f, 0.7f, 0.8f);
 
     return world;
 }
@@ -177,23 +177,23 @@ hittable_list earth(config& cf) {
 hittable_list perlin_spheres(config& cf) {
     hittable_list world;
 
-    auto perlin_texture = make_shared<noise_texture>(.5, 4);
+    auto perlin_texture = make_shared<noise_texture>(.5f, 4);
     auto perlin_mat = make_shared<lambertian>(perlin_texture);
-    world.add(make_shared<sphere>(vec3(0, -1000, 0), 1000, perlin_mat));
-    world.add(make_shared<sphere>(vec3(0, 2, 0), 2, perlin_mat));
+    world.add(make_shared<sphere>(vec3(0.0f, -1000.0f, 0.0f), 1000.0f, perlin_mat));
+    world.add(make_shared<sphere>(vec3(0.0f, 2.0f, 0.0f), 2.0f, perlin_mat));
 
     cf.image_width = 1024;
     cf.aa_samples = 50;
     cf.max_depth = 16;
 
-    cf.vfov = 20;
-    cf.pos = vec3(13, 2, 3);
+    cf.vfov = 20.0f;
+    cf.pos = vec3(13.0f, 2.0f, 3.0f);
     cf.target = vec3();
     
-    cf.defocus_angle = 0.6;
-    cf.focus_dist = 10.0;
+    cf.defocus_angle = 0.6f;
+    cf.focus_dist = 10.0f;
 
-    cf.background = vec3(0.5, 0.7, 0.8);
+    cf.background = vec3(0.5f, 0.7f, 0.8f);
 
     return world;
 }
@@ -202,30 +202,30 @@ hittable_list quads(config& cf) {
     hittable_list world;
 
     // Materials
-    auto left_red     = make_shared<lambertian>(vec3(1.0, 0.2, 0.2));
-    auto back_green   = make_shared<lambertian>(vec3(0.2, 1.0, 0.2));
-    auto right_blue   = make_shared<lambertian>(vec3(0.2, 0.2, 1.0));
-    auto upper_orange = make_shared<lambertian>(vec3(1.0, 0.5, 0.0));
-    auto lower_teal   = make_shared<lambertian>(vec3(0.2, 0.8, 0.8));
+    auto left_red     = make_shared<lambertian>(vec3(1.0f, 0.2f, 0.2f));
+    auto back_green   = make_shared<lambertian>(vec3(0.2f, 1.0f, 0.2f));
+    auto right_blue   = make_shared<lambertian>(vec3(0.2f, 0.2f, 1.0f));
+    auto upper_orange = make_shared<lambertian>(vec3(1.0f, 0.5f, 0.0f));
+    auto lower_teal   = make_shared<lambertian>(vec3(0.2f, 0.8f, 0.8f));
 
     // Quads
-    world.add(make_shared<quad>(vec3(-3,-2, 5), vec3(0, 0,-4), vec3(0, 4, 0), left_red));
-    world.add(make_shared<quad>(vec3(-2,-2, 0), vec3(4, 0, 0), vec3(0, 4, 0), back_green));
-    world.add(make_shared<quad>(vec3( 3,-2, 1), vec3(0, 0, 4), vec3(0, 4, 0), right_blue));
-    world.add(make_shared<quad>(vec3(-2, 3, 1), vec3(4, 0, 0), vec3(0, 0, 4), upper_orange));
-    world.add(make_shared<quad>(vec3(-2,-3, 5), vec3(4, 0, 0), vec3(0, 0,-4), lower_teal));
+    world.add(make_shared<quad>(vec3(-3.0f,-2.0f, 5.0f), vec3(0.0f, 0.0f,-4.0f), vec3(0.0f, 4.0f, 0.0f), left_red));
+    world.add(make_shared<quad>(vec3(-2.0f,-2.0f, 0.0f), vec3(4.0f, 0.0f, 0.0f), vec3(0.0f, 4.0f, 0.0f), back_green));
+    world.add(make_shared<quad>(vec3( 3.0f,-2.0f, 1.0f), vec3(0.0f, 0.0f, 4.0f), vec3(0.0f, 4.0f, 0.0f), right_blue));
+    world.add(make_shared<quad>(vec3(-2.0f, 3.0f, 1.0f), vec3(4.0f, 0.0f, 0.0f), vec3(0.0f, 0.0f, 4.0f), upper_orange));
+    world.add(make_shared<quad>(vec3(-2.0f,-3.0f, 5.0f), vec3(4.0f, 0.0f, 0.0f), vec3(0.0f, 0.0f,-4.0f), lower_teal));
 
     cf.image_width = 1024;
     cf.aa_samples = 50;
     cf.max_depth = 16;
 
-    cf.vfov = 80;
-    cf.pos = vec3(0, 0, 9);
+    cf.vfov = 80.0f;
+    cf.pos = vec3(0.0f, 0.0f, 9.0f);
     cf.target = vec3();
 
-    cf.defocus_angle = 0;
+    cf.defocus_angle = 0.0f;
 
-    cf.background = vec3(0.5, 0.7, 0.8);
+    cf.background = vec3(0.5f, 0.7f, 0.8f);
 
     return world;
 }
@@ -234,22 +234,22 @@ hittable_list simple_light(config& cf) {
     hittable_list world;
 
     auto perlin_texture = make_shared<noise_texture>(4);
-    world.add(make_shared<sphere>(vec3(0, -1000, 0), 1000, make_shared<lambertian>(perlin_texture)));
-    world.add(make_shared<sphere>(vec3(0, 2, 0), 2, make_shared<lambertian>(perlin_texture)));
+    world.add(make_shared<sphere>(vec3(0.0f, -1000.0f, 0.0f), 1000.0f, make_shared<lambertian>(perlin_texture)));
+    world.add(make_shared<sphere>(vec3(0.0f, 2.0f, 0.0f), 2.0f, make_shared<lambertian>(perlin_texture)));
 
-    auto light = make_shared<emissive>(vec3(4));
-    world.add(make_shared<sphere>(vec3(0, 7, 0), 2, light));
-    world.add(make_shared<quad>(vec3(3, 1, -2), vec3(2, 0, 0), vec3(0, 2, 0), light));
+    auto light = make_shared<emissive>(vec3(4.0f));
+    world.add(make_shared<sphere>(vec3(0.0f, 7.0f, 0.0f), 2.0f, light));
+    world.add(make_shared<quad>(vec3(3.0f, 1.0f, -2.0f), vec3(2.0f, 0.0f, 0.0f), vec3(0.0f, 2.0f, 0.0f), light));
 
     cf.image_width = 1024;
     cf.aa_samples = 50;
     cf.max_depth = 16;
 
-    cf.vfov = 20;
-    cf.pos = vec3(26, 3, 6);
-    cf.target = vec3(0, 2, 0);
+    cf.vfov = 20.0f;
+    cf.pos = vec3(26.0f, 3.0f, 6.0f);
+    cf.target = vec3(0.0f, 2.0f, 0.0f);
 
-    cf.defocus_angle = 0;
+    cf.defocus_angle = 0.0f;
 
     return world;
 }
@@ -257,41 +257,40 @@ hittable_list simple_light(config& cf) {
 hittable_list cornell_box(config& cf) {
     hittable_list world;
 
-    auto red   = make_shared<lambertian>(vec3(.65, .05, .05));
-    auto white = make_shared<lambertian>(vec3(.73, .73, .73));
-    auto green = make_shared<lambertian>(vec3(.12, .45, .15));
-    auto light = make_shared<emissive>(vec3(15, 15, 15));
+    auto red   = make_shared<lambertian>(vec3(.65f, .05f, .05f));
+    auto white = make_shared<lambertian>(vec3(.73f, .73f, .73f));
+    auto green = make_shared<lambertian>(vec3(.12f, .45f, .15f));
+    auto light = make_shared<emissive>(vec3(15.0f, 15.0f, 15.0f));
 
-    world.add(make_shared<quad>(vec3(555,0,0), vec3(0,555,0), vec3(0,0,555), green));
-    world.add(make_shared<quad>(vec3(0,0,0), vec3(0,555,0), vec3(0,0,555), red));
-    world.add(make_shared<quad>(vec3(343, 554, 332), vec3(-130,0,0), vec3(0,0,-105), light));
-    world.add(make_shared<quad>(vec3(0,0,0), vec3(555,0,0), vec3(0,0,555), white));
-    world.add(make_shared<quad>(vec3(555,555,555), vec3(-555,0,0), vec3(0,0,-555), white));
-    world.add(make_shared<quad>(vec3(0,0,555), vec3(555,0,0), vec3(0,555,0), white));
+    world.add(make_shared<quad>(vec3(555.0f,   0.0f,   0.0f), vec3(   0.0f, 555.0f, 0.0f), vec3(0.0f,   0.0f,  555.0f), green));
+    world.add(make_shared<quad>(vec3(  0.0f,   0.0f,   0.0f), vec3(   0.0f, 555.0f, 0.0f), vec3(0.0f,   0.0f,  555.0f), red));
+    world.add(make_shared<quad>(vec3(343.0f, 554.0f, 332.0f), vec3(-130.0f,   0.0f, 0.0f), vec3(0.0f,   0.0f, -105.0f), light));
+    world.add(make_shared<quad>(vec3(  0.0f,   0.0f,   0.0f), vec3( 555.0f,   0.0f, 0.0f), vec3(0.0f,   0.0f,  555.0f), white));
+    world.add(make_shared<quad>(vec3(555.0f, 555.0f, 555.0f), vec3(-555.0f,   0.0f, 0.0f), vec3(0.0f,   0.0f, -555.0f), white));
+    world.add(make_shared<quad>(vec3(  0.0f,   0.0f, 555.0f), vec3( 555.0f,   0.0f, 0.0f), vec3(0.0f, 555.0f,    0.0f), white));
 
-    auto box1 = make_shared<transform_o>(box(vec3(), vec3(165, 330, 165), white));
-    box1->rotate(15, transform_o::ROTATE_Y);
-    box1->translate(vec3(265, 0, 295));
+    auto box1 = make_shared<transform_o>(box(vec3(), vec3(165.0f, 330.0f, 165.0f), white));
+    box1->rotate(15.0f, transform_o::ROTATE_Y);
+    box1->translate(vec3(265.0f, 0.0f, 295.0f));
     world.add(box1);
     
-    auto box2 = make_shared<transform_o>(box(vec3(), vec3(165), white));
-    box2->rotate(-18, transform_o::ROTATE_Y);
-    box2->translate(vec3(130, 0, 65));
+    auto box2 = make_shared<transform_o>(box(vec3(), vec3(165.0f), white));
+    box2->rotate(-18.0f, transform_o::ROTATE_Y);
+    box2->translate(vec3(130.0f, 0.0f, 65.0f));
     world.add(box2);
 
-    cf.aspect_ratio = 1.0;
-    cf.image_width = 600;
-    cf.tw = 50;
-    cf.th = 50;
-    cf.aa_samples = 200;
-    cf.max_depth= 50;
+    cf.aspect_ratio = 1.0f;
+    cf.image_width  = 600;
+    cf.tw           = 50;
+    cf.th           = 50;
+    cf.aa_samples   = 200;
+    cf.max_depth    = 50;
 
-    cf.vfov = 40;
-    cf.pos = vec3(278, 278, -800);
-    cf.target = vec3(278, 278, 0);
-    cf.vup = vec3(0,1,0);
+    cf.vfov   = 40.0f;
+    cf.pos    = vec3(278.0f, 278.0f, -800.0f);
+    cf.target = vec3(278.0f, 278.0f, 0.0f);
 
-    cf.defocus_angle = 0;
+    cf.defocus_angle = 0.0f;
 
     return world;
 }
@@ -299,42 +298,41 @@ hittable_list cornell_box(config& cf) {
 hittable_list cornell_smoke(config& cf) {
     hittable_list world;
 
-    auto red   = make_shared<lambertian>(vec3(.65, .05, .05));
-    auto white = make_shared<lambertian>(vec3(.73, .73, .73));
-    auto green = make_shared<lambertian>(vec3(.12, .45, .15));
-    auto light = make_shared<emissive>(vec3(7, 7, 7));
+    auto red   = make_shared<lambertian>(vec3(.65f, .05f, .05f));
+    auto white = make_shared<lambertian>(vec3(.73f, .73f, .73f));
+    auto green = make_shared<lambertian>(vec3(.12f, .45f, .15f));
+    auto light = make_shared<emissive>(vec3(15.0f, 15.0f, 15.0f));
 
-    world.add(make_shared<quad>(vec3(555,0,0), vec3(0,555,0), vec3(0,0,555), green));
-    world.add(make_shared<quad>(vec3(0,0,0), vec3(0,555,0), vec3(0,0,555), red));
-    world.add(make_shared<quad>(vec3(113,554,127), vec3(330,0,0), vec3(0,0,305), light));
-    world.add(make_shared<quad>(vec3(0,555,0), vec3(555,0,0), vec3(0,0,555), white));
-    world.add(make_shared<quad>(vec3(0,0,0), vec3(555,0,0), vec3(0,0,555), white));
-    world.add(make_shared<quad>(vec3(0,0,555), vec3(555,0,0), vec3(0,555,0), white));
+    world.add(make_shared<quad>(vec3(555.0f,   0.0f,   0.0f), vec3(   0.0f, 555.0f, 0.0f), vec3(0.0f,   0.0f,  555.0f), green));
+    world.add(make_shared<quad>(vec3(  0.0f,   0.0f,   0.0f), vec3(   0.0f, 555.0f, 0.0f), vec3(0.0f,   0.0f,  555.0f), red));
+    world.add(make_shared<quad>(vec3(343.0f, 554.0f, 332.0f), vec3(-130.0f,   0.0f, 0.0f), vec3(0.0f,   0.0f, -105.0f), light));
+    world.add(make_shared<quad>(vec3(  0.0f,   0.0f,   0.0f), vec3( 555.0f,   0.0f, 0.0f), vec3(0.0f,   0.0f,  555.0f), white));
+    world.add(make_shared<quad>(vec3(555.0f, 555.0f, 555.0f), vec3(-555.0f,   0.0f, 0.0f), vec3(0.0f,   0.0f, -555.0f), white));
+    world.add(make_shared<quad>(vec3(  0.0f,   0.0f, 555.0f), vec3( 555.0f,   0.0f, 0.0f), vec3(0.0f, 555.0f,    0.0f), white));
 
-    auto box1 = make_shared<transform_o>(box(vec3(0,0,0), vec3(165,330,165), white));
-    box1->rotate(15, transform_o::ROTATE_Y);
-    box1->translate(vec3(265, 0, 295));
+    auto box1 = make_shared<transform_o>(box(vec3(), vec3(165.0f, 330.0f, 165.0f), white));
+    box1->rotate(15.0f, transform_o::ROTATE_Y);
+    box1->translate(vec3(265.0f, 0.0f, 295.0f));
+    
+    auto box2 = make_shared<transform_o>(box(vec3(), vec3(165.0f), white));
+    box2->rotate(-18.0f, transform_o::ROTATE_Y);
+    box2->translate(vec3(130.0f, 0.0f, 65.0f));
 
-    auto box2 = make_shared<transform_o>(box(vec3(0,0,0), vec3(165,165,165), white));
-    box2->rotate(-18, transform_o::ROTATE_Y);
-    box2->translate(vec3(130, 0, 65));
+    world.add(make_shared<constant_medium>(box1, 0.01f, vec3()));
+    world.add(make_shared<constant_medium>(box2, 0.01f, vec3(1.0f)));
 
-    world.add(make_shared<constant_medium>(box1, 0.01, vec3(0,0,0)));
-    world.add(make_shared<constant_medium>(box2, 0.01, vec3(1,1,1)));
+    cf.aspect_ratio = 1.0f;
+    cf.image_width  = 600;
+    cf.tw           = 50;
+    cf.th           = 50;
+    cf.aa_samples   = 200;
+    cf.max_depth    = 50;
 
-    cf.aspect_ratio      = 1.0;
-    cf.image_width       = 600;
-    cf.tw = 50;
-    cf.th = 50;
-    cf.aa_samples        = 200;
-    cf.max_depth         = 50;
+    cf.vfov   = 40.0f;
+    cf.pos    = vec3(278.0f, 278.0f, -800.0f);
+    cf.target = vec3(278.0f, 278.0f, 0.0f);
 
-    cf.vfov     = 40;
-    cf.pos      = vec3(278, 278, -800);
-    cf.target   = vec3(278, 278, 0);
-    cf.vup      = vec3(0,1,0);
-
-    cf.defocus_angle = 0;
+    cf.defocus_angle = 0.0f;
 
     return world;
 }
@@ -368,17 +366,17 @@ hittable_list final_scene(config& cf) {
     hittable_list world;
 
     hittable_list boxes1;
-    auto ground = make_shared<lambertian>(vec3(0.48, 0.83, 0.53));
+    auto ground = make_shared<lambertian>(vec3(0.48f, 0.83f, 0.53f));
 
     int boxes_per_side = 20;
     for (int i = 0; i < boxes_per_side; i++) {
         for (int j = 0; j < boxes_per_side; j++) {
-            auto w = 100.0;
-            auto x0 = -1000.0 + i*w;
-            auto z0 = -1000.0 + j*w;
-            auto y0 = 0.0;
+            auto w = 100.0f;
+            auto x0 = -1000.0f + i*w;
+            auto z0 = -1000.0f + j*w;
+            auto y0 = 0.0f;
             auto x1 = x0 + w;
-            auto y1 = random_float(1,101);
+            auto y1 = random_float(1.0f,101.0f);
             auto z1 = z0 + w;
 
             boxes1.add(box(vec3(x0,y0,z0), vec3(x1,y1,z1), ground));
@@ -387,41 +385,41 @@ hittable_list final_scene(config& cf) {
 
     world.add(make_shared<bvh_node>(boxes1));
 
-    auto light = make_shared<emissive>(vec3(7));
-    world.add(make_shared<quad>(vec3(123,554,147), vec3(300,0,0), vec3(0,0,265), light));
+    auto light = make_shared<emissive>(vec3(7.0f));
+    world.add(make_shared<quad>(vec3(123.0f, 554.0f, 147.0f), vec3(300.0f, 0.0f, 0.0f), vec3(0.0f, 0.0f, 265.0f), light));
 
-    auto center1 = vec3(400, 400, 200);
-    auto center2 = center1 + vec3(30,0,0);
-    auto sphere_material = make_shared<lambertian>(vec3(0.7, 0.3, 0.1));
-    world.add(make_shared<sphere>(center1, center2, 50, sphere_material));
+    auto center1 = vec3(400.0f, 400.0f, 200.0f);
+    auto center2 = center1 + vec3(30.0f, 0.0f, 0.0f);
+    auto sphere_material = make_shared<lambertian>(vec3(0.7f, 0.3f, 0.1f));
+    world.add(make_shared<sphere>(center1, center2, 50.0f, sphere_material));
 
-    world.add(make_shared<sphere>(vec3(260, 150, 45), 50, make_shared<dielectric>(1.5)));
+    world.add(make_shared<sphere>(vec3(260.0f, 150.0f, 45.0f), 50.0f, make_shared<dielectric>(1.5f)));
     world.add(make_shared<sphere>(
-        vec3(0, 150, 145), 50, make_shared<fuzzy>(vec3(0.8, 0.8, 0.9), 1.0)
+        vec3(0.0f, 150.0f, 145.0f), 50.0f, make_shared<fuzzy>(vec3(0.8f, 0.8f, 0.9f), 1.0f)
     ));
 
-    auto boundary = make_shared<sphere>(vec3(360,150,145), 70, make_shared<dielectric>(1.5));
+    auto boundary = make_shared<sphere>(vec3(360.0f, 150.0f, 145.0f), 70.0f, make_shared<dielectric>(1.5f));
     world.add(boundary);
-    world.add(make_shared<constant_medium>(boundary, 0.2, vec3(0.2, 0.4, 0.9)));
-    boundary = make_shared<sphere>(vec3(0,0,0), 5000, make_shared<dielectric>(1.5));
-    world.add(make_shared<constant_medium>(boundary, .0001, vec3(1,1,1)));
+    world.add(make_shared<constant_medium>(boundary, 0.2f, vec3(0.2f, 0.4f, 0.9f)));
+    boundary = make_shared<sphere>(vec3(), 5000.0f, make_shared<dielectric>(1.5f));
+    world.add(make_shared<constant_medium>(boundary, .0001f, vec3(1.0f)));
 
     auto emat = make_shared<lambertian>(make_shared<image_texture>("images/earth.jpg"));
-    world.add(make_shared<sphere>(vec3(400,200,400), 100, emat));
-    auto pertext = make_shared<noise_texture>(0.2);
-    world.add(make_shared<sphere>(vec3(220,280,300), 80, make_shared<lambertian>(pertext)));
+    world.add(make_shared<sphere>(vec3(400.0f, 200.0f, 400.0f), 100.0f, emat));
+    auto pertext = make_shared<noise_texture>(0.2f);
+    world.add(make_shared<sphere>(vec3(220.0f, 280.0f, 300.0f), 80.0f, make_shared<lambertian>(pertext)));
 
     hittable_list boxes2;
-    auto white = make_shared<lambertian>(vec3(.73, .73, .73));
+    auto white = make_shared<lambertian>(vec3(.73f));
     int ns = 1000;
     for (int j = 0; j < ns; j++) {
-        boxes2.add(make_shared<sphere>(vec3::random(0,165), 10, white));
+        boxes2.add(make_shared<sphere>(vec3::random(0.0f, 165.0f), 10.0f, white));
     }
 
     world.add(make_shared<transform_o>(
         make_shared<bvh_node>(boxes2))
             ->rotate(15, transform_o::ROTATE_Y)
-            ->translate(vec3(-100,270,395))
+            ->translate(vec3(-100.0f, 270.0f, 395.0f))
     );
 
     cf.aspect_ratio      = 1.0;
@@ -442,6 +440,21 @@ hittable_list final_scene(config& cf) {
 }
 
 int main(int argc, char** argv) {
+    // cout << fixed << setprecision(12);
+
+    // int inside_circle = 0;
+    // int N = 100000;
+    // for (int i = 0; i < N; ++i) {
+    //     float x = random_float(-1, 1);
+    //     float y = random_float(-1, 1);
+    //     if (x * x + y * y < 1.0f) ++inside_circle;
+    // }
+
+    // cout << "Estimate of Pi = " << (4.0f * inside_circle) / N << '\n';
+    // return -1;
+
+    // // ======================================
+
     InputParser input(argc, argv);
     if (input.cmdOptionExists("-h") || input.cmdOptionExists("--help") || !input.valid()) {
         InputParser::helpMessage();
@@ -506,12 +519,12 @@ int main(int argc, char** argv) {
 
     if (window_display) {
         thread render(&camera::render, &cam, ref(world), ref(pixels), ref(threads));
-        render.detach();
+        // render.detach();
 
         sf::Image image(display(pixels, { (unsigned int)cam.width(), (unsigned int)cam.height() }));
 
         // if (render.joinable()) render.join();
-        // for (thread& t : threads) if (t.joinable()) t.join();
+        for (thread& t : threads) if (t.joinable()) t.join();
 
         if (save) {
             bool success = image.saveToFile(output_file);
@@ -520,7 +533,7 @@ int main(int argc, char** argv) {
         }
     } else {
         cam.render(world, pixels, threads);
-        for (thread& t : threads) t.join();
+        for (thread& t : threads) if (t.joinable()) t.join();
 
         if (save) {
             sf::Image image({ (unsigned int)cam.width(), (unsigned int)cam.height() }, pixels.data());

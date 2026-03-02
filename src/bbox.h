@@ -18,7 +18,7 @@ class bbox {
         }
 
         void pad() {
-            float delta = 0.0001;
+            float delta = 0.0001f;
 
             if (x.size() < delta) x.max += delta;
             if (y.size() < delta) y.max += delta;
@@ -66,16 +66,16 @@ class bbox {
 
         float left_area(int axis, float position) {
             interval prime(intervals[axis].min, position);
-            return 2 * (prime.size() * intervals[(axis + 1) % 3].size() +
-                        prime.size() * intervals[(axis + 2) % 3].size() + 
-                        intervals[(axis + 1) % 3].size() * intervals[(axis + 2) % 3].size());
+            return 2.0f * (prime.size() * intervals[(axis + 1) % 3].size() +
+                           prime.size() * intervals[(axis + 2) % 3].size() + 
+                           intervals[(axis + 1) % 3].size() * intervals[(axis + 2) % 3].size());
         }
 
         float right_area(int axis, float position) {
             interval prime(position, intervals[axis].max);
-            return 2 * (prime.size() * intervals[(axis + 1) % 3].size() +
-                        prime.size() * intervals[(axis + 2) % 3].size() + 
-                        intervals[(axis + 1) % 3].size() * intervals[(axis + 2) % 3].size());
+            return 2.0f * (prime.size() * intervals[(axis + 1) % 3].size() +
+                           prime.size() * intervals[(axis + 2) % 3].size() + 
+                           intervals[(axis + 1) % 3].size() * intervals[(axis + 2) % 3].size());
         }
 
         double volume() {
@@ -85,7 +85,7 @@ class bbox {
 
         bool hit(const ray& r, interval ray_t) const {
             const vec3& point = r.pt();
-            const vec3& dir = r.dir();
+            const vec3& dir   = r.dir();
 
             for (int axis = 0; axis < 3; ++axis) {
                 const interval& ax = intervals[axis];

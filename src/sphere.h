@@ -19,20 +19,20 @@ class sphere : public hittable {
             float theta = std::acos(-p.y);
             float phi = std::atan2(-p.z, p.x) + pi;
 
-            u = phi / (2 * pi);
+            u = phi / (2.0f * pi);
             v = theta / pi;
         }
 
     public:    
         sphere(const vec3& cen, float rad, shared_ptr<material> mat) : 
             center(cen, vec3()),
-            radius(std::fmax(0, rad)),
+            radius(std::fmax(0.0f, rad)),
             mat(mat),
             bound_box(cen - rad, cen + rad) {}
 
         sphere(const vec3& cen1, const vec3& cen2, float rad, shared_ptr<material> mat) : 
             center(cen1, cen2 - cen1),
-            radius(std::fmax(0, rad)),
+            radius(std::fmax(0.0f, rad)),
             mat(mat),
             bound_box(bbox(cen1 - rad, cen1 + rad), bbox(cen2 - rad, cen2 + rad)) {}
 
@@ -44,7 +44,7 @@ class sphere : public hittable {
             float c = oc.length_squared() - radius * radius;
 
             float discriminant = h * h - a * c;
-            if (discriminant < 0) return false;
+            if (discriminant < 0.0f) return false;
             
             float sqrtd = std::sqrt(discriminant);
             float root = (h - sqrtd) / a;

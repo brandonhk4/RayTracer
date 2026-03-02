@@ -61,7 +61,7 @@ class fuzzy : public reflective {
             reflected = reflected.dir() + fuzz * random_unit_vector();
             scattered = ray(rec.pt, reflected, r_in.time());
             attenuation = albedo;
-            return dot(scattered.dir(), rec.normal) > 0.0;
+            return dot(scattered.dir(), rec.normal) > 0.0f;
         }
 };
 
@@ -72,9 +72,9 @@ class dielectric : public material {
 
         static float reflectance(float cos, float refract_index) {
             // Schlick's approximation for reflectance
-            float r0 = (1 - refract_index) / (1 + refract_index);
+            float r0 = (1.0f - refract_index) / (1.0f + refract_index);
             r0 *= r0;
-            return r0 + (1 - r0) * std::pow((1 - cos), 5);
+            return r0 + (1.0f - r0) * std::pow((1.0f - cos), 5);
         }
 
     public:
@@ -87,26 +87,26 @@ class dielectric : public material {
         bool scatter(const ray& r_in, const hit_record& rec, vec3& attenuation, ray& scattered) const override {
             attenuation = albedo;
             vec3 normal = rec.normal;
-            float ri = 1.0 / refract_index;
-            if (dot(r_in.dir(), rec.normal) > 0.0) {
+            float ri = 1.0f / refract_index;
+            if (dot(r_in.dir(), rec.normal) > 0.0f) {
                 normal = -normal;
                 ri = refract_index;
             }
 
             vec3 unit_dir = r_in.dir().dir();
             float cos = dot(-unit_dir, normal);
-            float sin = std::sqrt(1.0 - cos * cos);
+            float sin = std::sqrt(1.0f - cos * cos);
 
             bool cannot_refract = ri * sin > 1.0;
             vec3 direction;
             vec3 position;
             if (cannot_refract || reflectance(cos, ri) > random_float()) {
                  direction = reflect(unit_dir, normal);
-                 position = rec.pt + 0.001 * normal;
+                 position = rec.pt + 0.001f * normal;
             }
             else {
                 direction = refract(unit_dir, normal, ri);
-                position = rec.pt - 0.001 * normal;
+                position = rec.pt - 0.001f * normal;
             }
             
             scattered = ray(position, direction, r_in.time());

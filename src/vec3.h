@@ -130,7 +130,7 @@ inline vec3 operator*(const vec3& v, float t) {
 }
 
 inline vec3 operator/(const vec3& v, float t) {
-    return (1 / t) * v;
+    return (1.0f / t) * v;
 }
 
 vec3 vec3::dir() const {
@@ -151,32 +151,32 @@ inline vec3 random_unit_vector() {
     while (true) {
         vec3 p = vec3::random(-1, 1);
         float lensq = p.length_squared();
-        if (lensq > 1e-160 && lensq <= 1) return p / sqrt(lensq);
+        if (lensq > 1e-160 && lensq <= 1.0f) return p / sqrt(lensq);
     }
 }
 
 inline vec3 random_on_hemisphere(const vec3& normal) {
     vec3 random_v = random_unit_vector();
-    return (dot(random_v, normal) > 0.0) ? random_v : -random_v;
+    return (dot(random_v, normal) > 0.0f) ? random_v : -random_v;
 }
 
 inline vec3 random_in_unit_disk() {
     while (true) {
-        vec3 p = vec3(random_float(-1, 1), random_float(-1, 1), 0);
-        if (p.length_squared() < 1) return p;
+        vec3 p = vec3(random_float(-1.0f, 1.0f), random_float(-1.0f, 1.0f), 0.0f);
+        if (p.length_squared() < 1.0f) return p;
     }
 }
 
 inline vec3 reflect(const vec3& v, const vec3& n) {
     // v is directed into the surface, n is directed out
-    return v - 2 * dot(v, n) * n;
+    return v - 2.0f * dot(v, n) * n;
 }
 
 inline vec3 refract(const vec3& v, const vec3& n, float index_ratio) {
     // v is directed in opposite direction from n
     float cos = dot(-v.dir(), n);
     vec3 r_perp = index_ratio * (v + v.length() * cos * n);
-    vec3 r_para = -std::sqrt(1 - r_perp.length_squared()) * n;
+    vec3 r_para = -std::sqrt(1.0f - r_perp.length_squared()) * n;
     return r_perp + r_para;
 }
 
