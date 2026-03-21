@@ -23,6 +23,14 @@ class hittable {
     virtual bool hit(const ray& r, interval ray_t, hit_record& rec) const = 0;
 
     virtual bbox bounding_box() const = 0;
+
+    virtual float pdf_value(const vec3& origin, const vec3& direction) const {
+        return 0.0f;
+    }
+
+    virtual vec3 random(const vec3& origin) const {
+        return vec3(1.0f, 0.0f, 0.0f);
+    }
 };
 
 #endif

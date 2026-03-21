@@ -41,6 +41,14 @@ class hittable_list : public hittable {
         }
 
         bbox bounding_box() const override { return bound_box; }
+
+        float pdf_value(const vec3& origin, const vec3& direction) const override{
+            return objects[0]->pdf_value(origin, direction);
+        }
+
+        vec3 random(const vec3& origin) const override{
+            return objects[0]->random(origin);
+        }
 };
 
 #endif

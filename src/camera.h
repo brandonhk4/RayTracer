@@ -3,6 +3,8 @@
 
 #include "hittable.h"
 #include "material.h"
+#include "pdf.h"
+
 #include <thread>
 
 #include <string>
@@ -13,8 +15,8 @@ struct config {
     // Screen config
     float aspect_ratio = 16.0f / 9.0f;    // Ratio of image width over height
     int image_width = 1024;               // Rendered image width in pixel count
-    int tw = 16;
-    int th =  9;
+    int tw = -1;
+    int th =  -1;
 
     // Render config
     int aa_samples = 20;                   // Count of random samples for each pixel for antialiasing
@@ -45,6 +47,8 @@ class camera {
         
         void initialize() {
             image_height = max(int(image_width / aspect_ratio), 1);
+            if (tw == -1) tw = image_width;
+            if (th == -1) th = image_height;
             
             vec3 forward, right, up;    // Camera frame basis vectors
             forward = (target - pos).dir();
@@ -92,7 +96,7 @@ class camera {
             return ray(ray_pos, ray_dir, ray_time);
         }
 
-        vec3 ray_color(const ray& r, int depth, const hittable& world) const {
+        vec3 ray_color(const ray& r, int depth, const hittable& world, const hittable& lights) const {
             if (!depth) return vec3();
 
             hit_record rec;
@@ -103,20 +107,30 @@ class camera {
 
             ray scattered;
             vec3 attenuation;
-            vec3 emission = rec.mat->emitted(rec.u, rec.v, rec.pt);
-            if (!rec.mat->scatter(r, rec, attenuation, scattered))
+            float pdf_value;
+            vec3 emission = rec.mat->emitted(r, rec, rec.u, rec.v, rec.pt);
+
+            if (!rec.mat->scatter(r, rec, attenuation, scattered, pdf_value))
                 return emission;
+
+            hittable_pdf light_pdf(lights, rec.pt);
+            scattered = ray(rec.pt, light_pdf.generate(), r.time());
+            pdf_value = light_pdf.value(scattered.dir());
             
-            return emission + attenuation * ray_color(scattered, depth - 1, world);
+            float scattering_pdf = rec.mat->scattering_pdf(r, rec, scattered);
+            
+            vec3 scatter_color = (attenuation * scattering_pdf * ray_color(scattered, depth - 1, world, lights)) / pdf_value;
+            
+            return emission + scatter_color;
         }
 
-        void pixel_color(const hittable* world, vector<uint8_t>* pixels, int i, int j) {
-            for (int _i = i; _i < i + tw; ++_i){
-                for (int _j = j; _j < j + th; ++_j){
+        void pixel_color(const hittable* world, const hittable* lights, vector<uint8_t>* pixels, int i, int j) {
+            for (int _j = j; _j < j + th; ++_j){
+                for (int _i = i; _i < i + tw; ++_i){
                     vec3 pixel_color;
                     for (int sample = 0; sample < aa_samples; ++sample) {
                         ray r = get_ray(_i, _j);
-                        pixel_color += ray_color(r, max_depth, *world) / aa_samples;
+                        pixel_color += ray_color(r, max_depth, *world, *lights) / aa_samples;
                     }
 
                     write_color(*pixels, pixel_color, (_i + _j * image_width) * 4);
@@ -161,11 +175,11 @@ class camera {
             background(cf.background)
         {initialize();}
 
-        void render(const hittable& world, vector<uint8_t>& pixels, vector<thread>& threads) {
+        void render(const hittable& world, vector<uint8_t>& pixels, vector<thread>& threads, const hittable& lights=hittable_list()) {
             for (int j = 0; j < image_height; j+=th) {
                 clog << "\rScanlines remaining: " << (image_height - j) << ' ' << flush;
                 for (int i = 0; i < image_width; i+=tw) {
-                    threads.emplace_back(&camera::pixel_color, this, &world, &pixels, i, j);
+                    threads.emplace_back(&camera::pixel_color, this, &world, &lights, &pixels, i, j);
                     // threads[threads.size() - 1].detach();
                 }
             }

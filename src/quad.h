@@ -10,6 +10,7 @@ class quad : public hittable {
         shared_ptr<material> mat;
         bbox bound_box;
         vec3 n;
+        float area;
 
         static float determinant(vec3 c1, vec3 c2, vec3 c3) {
             vec3 ray_cross = cross(c3, c1);
@@ -27,7 +28,8 @@ class quad : public hittable {
             Q(Q), u(u), v(v), mat(mat)
         {
             set_bbox();
-            n = cross(u, v).dir();
+            n = cross(u, v);
+            area = n.length();
         }
 
         bbox bounding_box() const override { return bound_box; }
@@ -57,11 +59,25 @@ class quad : public hittable {
             rec.t = t;
             rec.pt = P;
             rec.mat = mat;
-            rec.normal = dot(n, r.dir()) < 0.0f? n : -n;
+            rec.normal = n.dir();
             rec.u = a;
             rec.v = b;
 
             return true;
+        }
+
+        float pdf_value(const vec3& origin, const vec3& direction) const override {
+            hit_record rec;
+            if (!this->hit(ray(origin, direction), interval(0.001, infinity), rec)) return 0;
+
+            float dist_sq = rec.t * rec.t * direction.length_squared();
+            float cos = std::fabs(dot(direction, rec.normal) / direction.length());
+
+            return dist_sq / (cos * area);
+        }
+
+        vec3 random(const vec3& origin) const override {
+            return Q + (random_float() * u) + (random_float() * v) - origin;
         }
 };
 

@@ -70,11 +70,6 @@ class vec3 {
             return x*x + y*y + z*z;
         }
 
-        bool near_zero() const {
-            float s = 1e-8;
-            return std::fabs(x) < s && std::fabs(y) < s && std::fabs(z) < s;
-        }
-
         vec3 dir() const;
 
         static vec3 random() {
@@ -104,6 +99,11 @@ class vec3 {
             return out;
         }
 };
+
+inline bool near_zero(const vec3& v) {
+    float s = 1e-8;
+    return std::fabs(v.x) < s && std::fabs(v.y) < s && std::fabs(v.z) < s;
+}
 
 inline std::ostream& operator<<(std::ostream& out, const vec3& v) {
     return out << v.x << ' ' << v.y << ' ' << v.z;
@@ -148,11 +148,21 @@ inline vec3 cross(const vec3& u, const vec3& v) {
 }
 
 inline vec3 random_unit_vector() {
-    while (true) {
-        vec3 p = vec3::random(-1, 1);
-        float lensq = p.length_squared();
-        if (lensq > 1e-160 && lensq <= 1.0f) return p / sqrt(lensq);
-    }
+    float r1 = random_float();
+    float r2 = random_float();
+
+    float phi = 2.0f * pi * r1;
+    float sin_theta = 2.0f * sqrt(r2 * (1 - r2));
+    float x = cos(phi) * sin_theta;
+    float y = sin(phi) * sin_theta;
+    float z = 1 - 2*r2;
+    
+    return vec3(x, y, z);
+    // while (true) {
+    //     vec3 p = vec3::random(-1, 1);
+    //     float lensq = p.length_squared();
+    //     if (lensq > 1e-160 && lensq <= 1.0f) return p / sqrt(lensq);
+    // }
 }
 
 inline vec3 random_on_hemisphere(const vec3& normal) {
@@ -165,6 +175,19 @@ inline vec3 random_in_unit_disk() {
         vec3 p = vec3(random_float(-1.0f, 1.0f), random_float(-1.0f, 1.0f), 0.0f);
         if (p.length_squared() < 1.0f) return p;
     }
+}
+
+inline vec3 random_cosine_direction() {
+    float r1 = random_float();
+    float r2 = random_float();
+
+    float phi = 2.0f * pi * r1;
+    float sqrtr2 = sqrt(r2);
+    float x = cos(phi) * sqrtr2;
+    float y = sin(phi) * sqrtr2;
+    float z = sqrt(1.0f - r2);
+    
+    return vec3(x, y, z);
 }
 
 inline vec3 reflect(const vec3& v, const vec3& n) {
