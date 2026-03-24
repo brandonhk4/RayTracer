@@ -16,6 +16,7 @@ class hittable_list : public hittable {
 
         hittable_list() {}
         hittable_list(shared_ptr<hittable> object) { add(object); }
+        hittable_list(int k) { objects.reserve(k); }
 
         void clear() {objects.clear();}
 

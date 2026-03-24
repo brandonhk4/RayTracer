@@ -14,6 +14,7 @@
 #include "sphere.h"
 #include "quad.h"
 #include "triangle.h"
+#include "bezier.h"
 #include "transform.h"
 #include "camera.h"
 #include "InputParser.h"
@@ -352,8 +353,9 @@ hittable_list cornell_smoke(config& cf) {
     return world;
 }
 
-hittable_list test(config& cf) {
+pair<hittable_list, hittable_list> test(config& cf) {
     hittable_list world;
+    hittable_list lights;
 
     auto reflect = make_shared<metal>(vec3(1.0f));
     auto refract = make_shared<dielectric>(1.5f);
@@ -365,6 +367,8 @@ hittable_list test(config& cf) {
     world.add(box(vec3(-2.0f, 0.0f, -2.0f), vec3(2.0f, 1.0f, 2.0f), refract));
 
     auto light = make_shared<emissive>(vec3(4));
+    lights.add(make_shared<sphere>(vec3(0.0f, 7.0f, 0.0f), 2.0f, light));
+    world.add(lights);
     // auto trans = make_shared<dielectric>(vec3(0.2, 0.6, 0.3), 1.5);
     
     world.add(make_shared<sphere>(vec3(0.0f, 7.0f, 0.0f), 2.0f, light));
@@ -373,16 +377,14 @@ hittable_list test(config& cf) {
     cf.image_width = 1024;
     cf.aa_samples = 50;
     cf.max_depth = 16;
+    cf.tw = 256;
+    cf.th = 144;
 
     cf.vfov = 20;
     cf.pos = vec3(26, 3, 6);
     cf.target = vec3(0, 2, 0);
 
-    cf.defocus_angle = 0;
-
-    cf.background = vec3(0, .2, .1);
-
-    return world;
+    return pair<hittable_list, hittable_list>(world, lights);
 }
 
 pair<hittable_list, hittable_list> final_scene(config& cf) {
@@ -447,32 +449,55 @@ pair<hittable_list, hittable_list> final_scene(config& cf) {
 
     cf.aspect_ratio      = 1.0;
     cf.image_width       = 400;
-    cf.tw = 200;
-    cf.th = 200;
+    cf.tw                = 200;
+    cf.th                = 200;
     cf.aa_samples        = 250;
     cf.max_depth         = 4;
 
-    cf.vfov     = 40;
-    cf.pos      = vec3(478, 278, -600);
-    cf.target   = vec3(278, 278, 0);
-    cf.vup      = vec3(0,1,0);
+    cf.vfov     = 40.0f;
+    cf.pos      = vec3(478.0f, 278.0f, -600.0f);
+    cf.target   = vec3(278.0f, 278.0f, 0.0f);
+    cf.vup      = vec3(0.0f, 1.0f, 0.0f);
 
-    cf.defocus_angle = 0;
+    return pair<hittable_list, hittable_list>(world, lights);
+}
+
+pair<hittable_list, hittable_list> bezier(config& cf) {
+    hittable_list world;
+    hittable_list lights;
+
+    mat4 x, y, z;
+    for (int i = 0; i < 16; ++i) {
+        x.e[i] = (i % 4) * 4 - 2;
+        y.e[i] = sin(i) * 4;
+        z.e[i] = (i / 4) * 4 - 2;
+    }
+    
+    bezier_patch bp(x, y, z);
+
+    auto white = make_shared<lambertian>(vec3(.73f));
+    world.add(bp.tesselate(18, white));
+
+    auto light = make_shared<emissive>(vec3(4));
+    
+    lights.add(make_shared<sphere>(vec3(0.0f, 7.0f, 0.0f), 2.0f, light));
+    world.add(lights);
+    
+
+    cf.image_width = 1024;
+    cf.aa_samples  = 50;
+    cf.max_depth   = 16;
+    cf.tw          = 256;
+    cf.th          = 144;
+
+    cf.vfov     = 20.0f;
+    cf.pos      = vec3(26.0f, 3.0f, 6.0f);
+    cf.target   = vec3(0.0f, 2.0f, 0.0f);
 
     return pair<hittable_list, hittable_list>(world, lights);
 }
 
 int main(int argc, char** argv) {
-    stringstream sstream;
-    for (int i = 0; i < 16; ++i) {
-        sstream << "float e" << i << ", ";
-    }
-    sstream << "\n";
-    for (int i = 0; i < 16; ++i) {
-        sstream << "e[" << i << "] = e" << i << ";";
-    }
-    cout << sstream.str();
-    return -1;
 
     InputParser input(argc, argv);
     if (input.cmdOptionExists("-h") || input.cmdOptionExists("--help") || !input.valid()) {
@@ -500,7 +525,9 @@ int main(int argc, char** argv) {
     pair<hittable_list, hittable_list> out;
     switch (scene) {
         default:
-            world = test(cf);
+            out = test(cf);
+            world = out.first;
+            lights = out.second;
             break;
         case 1:
             world = bouncing_balls(cf);
@@ -532,6 +559,11 @@ int main(int argc, char** argv) {
             break;
         case 9:
             out = final_scene(cf);
+            world = out.first;
+            lights = out.second;
+            break;
+        case 10:
+            out = bezier(cf);
             world = out.first;
             lights = out.second;
             break;

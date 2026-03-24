@@ -81,7 +81,6 @@ class vec3 {
         }
 
         static vec3 stov(std::string str) {
-            std::cout << str;
             vec3 out;
             static std::regex re(
                 "^\\(\\s*-?\\d+(.\\d+)?\\s*,\\s*-?\\d+(.\\d+)?\\s*,\\s*-?\\d+(.\\d+)?\\s*\\)$"

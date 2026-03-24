@@ -10,6 +10,7 @@ class triangle : public hittable {
         shared_ptr<material> mat;
         bbox bound_box;
         vec3 n;
+        float area;
 
         static float determinant(vec3 c1, vec3 c2, vec3 c3) {
             vec3 ray_cross = cross(c3, c1);
@@ -23,11 +24,12 @@ class triangle : public hittable {
         }
 
     public:
-        triangle(const vec3& Q, const vec3& u, const vec3& v, shared_ptr<material> mat) : 
-            Q(Q), u(u), v(v), mat(mat)
+        triangle(const vec3& Q, const vec3& a, const vec3& b, shared_ptr<material> mat) : 
+            Q(Q), u(a - Q), v(b - Q), mat(mat)
         {
             set_bbox();
-            n = cross(u, v).dir();
+            n = cross(u, v);
+            area = n.length();
         }
 
         bbox bounding_box() const override { return bound_box; }
@@ -56,11 +58,26 @@ class triangle : public hittable {
             rec.t = t;
             rec.pt = P;
             rec.mat = mat;
-            rec.normal = n;
+            rec.normal = n.dir();
             rec.u = a;
             rec.v = b;
 
             return true;
+        }
+
+        float pdf_value(const vec3& origin, const vec3& direction) const override {
+            hit_record rec;
+            if (!this->hit(ray(origin, direction), interval(0.001, infinity), rec)) return 0.0f;
+
+            float dist_sq = rec.t * rec.t * direction.length_squared();
+            float cos = std::fabs(dot(direction, rec.normal) / direction.length());
+
+            return dist_sq / (cos * area);
+        }
+
+        vec3 random(const vec3& origin) const override {
+            float r1 = random_float();
+            return Q + (r1 * u) + (random_float(0, r1) * v) - origin;
         }
 };
 
