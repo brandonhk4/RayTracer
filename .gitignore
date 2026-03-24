@@ -1,3 +1,4 @@
 build/
-*.png
+*.png 
+!renders/*.png
 out.txt
