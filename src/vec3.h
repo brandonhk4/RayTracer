@@ -158,11 +158,6 @@ inline vec3 random_unit_vector() {
     float z = 1 - 2*r2;
     
     return vec3(x, y, z);
-    // while (true) {
-    //     vec3 p = vec3::random(-1, 1);
-    //     float lensq = p.length_squared();
-    //     if (lensq > 1e-160 && lensq <= 1.0f) return p / sqrt(lensq);
-    // }
 }
 
 inline vec3 random_on_hemisphere(const vec3& normal) {

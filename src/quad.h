@@ -68,7 +68,7 @@ class quad : public hittable {
 
         float pdf_value(const vec3& origin, const vec3& direction) const override {
             hit_record rec;
-            if (!this->hit(ray(origin, direction), interval(0.001, infinity), rec)) return 0;
+            if (!this->hit(ray(origin, direction), interval(0.001, infinity), rec)) return 0.0f;
 
             float dist_sq = rec.t * rec.t * direction.length_squared();
             float cos = std::fabs(dot(direction, rec.normal) / direction.length());

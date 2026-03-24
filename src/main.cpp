@@ -85,10 +85,10 @@ hittable_list bouncing_balls(config& cf) {
                     vec3 center2 = center + vec3(0.0f, random_float(0.0f, .5f), 0.0f);
                     world.add(make_shared<sphere>(center, center2, 0.2f, sphere_mat));
                 } else if (choose_mat < 0.95f) {
-                    // reflective
+                    // metal
                     vec3 albedo = vec3::random();
                     double fuzz = random_float(0.0f, 0.5f);
-                    sphere_mat = make_shared<fuzzy>(albedo, fuzz);
+                    sphere_mat = make_shared<metal>(albedo, fuzz);
                     world.add(make_shared<sphere>(center, 0.2f, sphere_mat));
                 } else {
                     // glass
@@ -103,7 +103,7 @@ hittable_list bouncing_balls(config& cf) {
     shared_ptr<lambertian> matte_mat = make_shared<lambertian>(vec3(0.4f, 0.6f, 0.4f));
     world.add(make_shared<sphere>(vec3(-4.0f, 1.0f, 0.0f), 1.0f, matte_mat));
     
-    shared_ptr<reflective> reflect_mat = make_shared<reflective>(vec3(0.3f, 0.3f, 0.3f));
+    shared_ptr<metal> reflect_mat = make_shared<metal>(vec3(0.3f, 0.3f, 0.3f));
     world.add(make_shared<sphere>(vec3(0.0f, 1.0f, 0.0f), 1.0f, reflect_mat));
 
     shared_ptr<dielectric> di_mat = make_shared<dielectric>(vec3(1.0f), 1.5f);
@@ -232,16 +232,19 @@ hittable_list quads(config& cf) {
     return world;
 }
 
-hittable_list simple_light(config& cf) {
+pair<hittable_list, hittable_list> simple_light(config& cf) {
     hittable_list world;
+    hittable_list lights;
 
     auto perlin_texture = make_shared<noise_texture>(4);
     world.add(make_shared<sphere>(vec3(0.0f, -1000.0f, 0.0f), 1000.0f, make_shared<lambertian>(perlin_texture)));
     world.add(make_shared<sphere>(vec3(0.0f, 2.0f, 0.0f), 2.0f, make_shared<lambertian>(perlin_texture)));
 
     auto light = make_shared<emissive>(vec3(4.0f));
-    world.add(make_shared<sphere>(vec3(0.0f, 7.0f, 0.0f), 2.0f, light));
-    world.add(make_shared<quad>(vec3(3.0f, 1.0f, -2.0f), vec3(2.0f, 0.0f, 0.0f), vec3(0.0f, 2.0f, 0.0f), light));
+    lights.add(make_shared<sphere>(vec3(0.0f, 7.0f, 0.0f), 2.0f, light));
+    lights.add(make_shared<quad>(vec3(3.0f, 1.0f, -2.0f), vec3(2.0f, 0.0f, 0.0f), vec3(0.0f, 2.0f, 0.0f), light));
+
+    world.add(lights);
 
     cf.image_width = 1024;
     cf.aa_samples = 50;
@@ -253,7 +256,7 @@ hittable_list simple_light(config& cf) {
 
     cf.defocus_angle = 0.0f;
 
-    return world;
+    return pair<hittable_list, hittable_list>(world, lights);
 }
 
 pair<hittable_list, hittable_list> cornell_box(config& cf) {
@@ -265,24 +268,30 @@ pair<hittable_list, hittable_list> cornell_box(config& cf) {
     auto green = make_shared<lambertian>(vec3(.12f, .45f, .15f));
     auto light = make_shared<emissive>(vec3(15.0f));
 
+    // walls
     world.add(make_shared<quad>(vec3(555.0f,   0.0f,   0.0f), vec3(   0.0f,   0.0f,  555.0f), vec3(  0.0f, 555.0f,    0.0f), green));
     world.add(make_shared<quad>(vec3(  0.0f,   0.0f,   0.0f), vec3(   0.0f, 555.0f,    0.0f), vec3(  0.0f,   0.0f,  555.0f), red));
     world.add(make_shared<quad>(vec3(  0.0f,   0.0f,   0.0f), vec3(   0.0f,   0.0f,  555.0f), vec3(555.0f,   0.0f,    0.0f), white));
     world.add(make_shared<quad>(vec3(555.0f, 555.0f, 555.0f), vec3(-555.0f,   0.0f,    0.0f), vec3(  0.0f,   0.0f, -555.0f), white));
     world.add(make_shared<quad>(vec3(  0.0f,   0.0f, 555.0f), vec3(   0.0f, 555.0f,    0.0f), vec3(555.0f,   0.0f,    0.0f), white));
 
-    world.add(make_shared<quad>(vec3(343.0f, 554.0f, 332.0f), vec3(-130.0f,   0.0f, 0.0f), vec3(0.0f,   0.0f, -105.0f), light));
+    // light
     lights.add(make_shared<quad>(vec3(343.0f, 554.0f, 332.0f), vec3(-130.0f,   0.0f, 0.0f), vec3(0.0f,   0.0f, -105.0f), light));
 
-    auto box1 = make_shared<transform_o>(box(vec3(), vec3(165.0f, 330.0f, 165.0f), white));
+    // objects
+    auto aluminum = make_shared<metal>(vec3(0.8f, 0.85f, 0.88f));
+    auto box1 = make_shared<transform_o>(box(vec3(), vec3(165.0f, 330.0f, 165.0f), aluminum));
     box1->rotate(15.0f, transform_o::ROTATE_Y);
     box1->translate(vec3(265.0f, 0.0f, 295.0f));
     world.add(box1);
-    
+
+    auto glass = make_shared<dielectric>(1.5f); 
+    lights.add(make_shared<sphere>(vec3(190.0f, 255.0f, 190.f), 90.0f, glass));
     auto box2 = make_shared<transform_o>(box(vec3(), vec3(165.0f), white));
     box2->rotate(-18.0f, transform_o::ROTATE_Y);
     box2->translate(vec3(130.0f, 0.0f, 65.0f));
     world.add(box2);
+    world.add(lights);
 
     cf.aspect_ratio = 1.0f;
     cf.image_width  = 600;
@@ -346,7 +355,7 @@ hittable_list cornell_smoke(config& cf) {
 hittable_list test(config& cf) {
     hittable_list world;
 
-    auto reflect = make_shared<reflective>(vec3(1.0f));
+    auto reflect = make_shared<metal>(vec3(1.0f));
     auto refract = make_shared<dielectric>(1.5f);
     auto white = make_shared<lambertian>(vec3(.73f));
 
@@ -376,8 +385,9 @@ hittable_list test(config& cf) {
     return world;
 }
 
-hittable_list final_scene(config& cf) {
+pair<hittable_list, hittable_list> final_scene(config& cf) {
     hittable_list world;
+    hittable_list lights;
 
     hittable_list boxes1;
     auto ground = make_shared<lambertian>(vec3(0.48f, 0.83f, 0.53f));
@@ -400,7 +410,8 @@ hittable_list final_scene(config& cf) {
     world.add(make_shared<bvh_node>(boxes1));
 
     auto light = make_shared<emissive>(vec3(7.0f));
-    world.add(make_shared<quad>(vec3(123.0f, 554.0f, 147.0f), vec3(300.0f, 0.0f, 0.0f), vec3(0.0f, 0.0f, 265.0f), light));
+    lights.add(make_shared<quad>(vec3(123.0f, 554.0f, 147.0f), vec3(300.0f, 0.0f, 0.0f), vec3(0.0f, 0.0f, 265.0f), light));
+    world.add(lights);
 
     auto center1 = vec3(400.0f, 400.0f, 200.0f);
     auto center2 = center1 + vec3(30.0f, 0.0f, 0.0f);
@@ -408,9 +419,7 @@ hittable_list final_scene(config& cf) {
     world.add(make_shared<sphere>(center1, center2, 50.0f, sphere_material));
 
     world.add(make_shared<sphere>(vec3(260.0f, 150.0f, 45.0f), 50.0f, make_shared<dielectric>(1.5f)));
-    world.add(make_shared<sphere>(
-        vec3(0.0f, 150.0f, 145.0f), 50.0f, make_shared<fuzzy>(vec3(0.8f, 0.8f, 0.9f), 1.0f)
-    ));
+    world.add(make_shared<sphere>(vec3(0.0f, 150.0f, 145.0f), 50.0f, make_shared<metal>(vec3(0.8f, 0.8f, 0.9f), 1.0f)));
 
     auto boundary = make_shared<sphere>(vec3(360.0f, 150.0f, 145.0f), 70.0f, make_shared<dielectric>(1.5f));
     world.add(boundary);
@@ -438,8 +447,8 @@ hittable_list final_scene(config& cf) {
 
     cf.aspect_ratio      = 1.0;
     cf.image_width       = 400;
-    cf.tw = 50;
-    cf.th = 50;
+    cf.tw = 200;
+    cf.th = 200;
     cf.aa_samples        = 250;
     cf.max_depth         = 4;
 
@@ -450,10 +459,20 @@ hittable_list final_scene(config& cf) {
 
     cf.defocus_angle = 0;
 
-    return world;
+    return pair<hittable_list, hittable_list>(world, lights);
 }
 
 int main(int argc, char** argv) {
+    stringstream sstream;
+    for (int i = 0; i < 16; ++i) {
+        sstream << "float e" << i << ", ";
+    }
+    sstream << "\n";
+    for (int i = 0; i < 16; ++i) {
+        sstream << "e[" << i << "] = e" << i << ";";
+    }
+    cout << sstream.str();
+    return -1;
 
     InputParser input(argc, argv);
     if (input.cmdOptionExists("-h") || input.cmdOptionExists("--help") || !input.valid()) {
@@ -499,7 +518,9 @@ int main(int argc, char** argv) {
             world = quads(cf);
             break;
         case 6:
-            world = simple_light(cf);
+            out = simple_light(cf);
+            world = out.first;
+            lights = out.second;
             break;
         case 7:
             out = cornell_box(cf);
@@ -510,7 +531,9 @@ int main(int argc, char** argv) {
             world = cornell_smoke(cf);
             break;
         case 9:
-            world = final_scene(cf);
+            out = final_scene(cf);
+            world = out.first;
+            lights = out.second;
             break;
     }
 
@@ -524,12 +547,10 @@ int main(int argc, char** argv) {
     threads.reserve(cam.width() * cam.height() / (cf.tw * cf.th));
 
     if (window_display) {
-        thread render(&camera::render, &cam, ref(world), ref(pixels), ref(threads), ref(lights));
-        // render.detach();
+        thread render(&camera::render, &cam, ref(world), ref(lights), ref(pixels), ref(threads));
 
         sf::Image image(display(pixels, { (unsigned int)cam.width(), (unsigned int)cam.height() }));
 
-        // if (render.joinable()) render.join();
         for (thread& t : threads) if (t.joinable()) t.join();
 
         if (save) {
@@ -538,7 +559,7 @@ int main(int argc, char** argv) {
             else cout << "Failed to write image\n";
         }
     } else {
-        cam.render(world, pixels, threads, lights);
+        cam.render(world, lights, pixels, threads);
         for (thread& t : threads) if (t.joinable()) t.join();
 
         if (save) {
@@ -548,4 +569,5 @@ int main(int argc, char** argv) {
             else cout << "Failed to write image\n";
         }
     }
+    return 0;
 }

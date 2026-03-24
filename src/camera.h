@@ -105,21 +105,24 @@ class camera {
                 return background;
             }
 
-            ray scattered;
-            vec3 attenuation;
-            float pdf_value;
+            scatter_record srec;
             vec3 emission = rec.mat->emitted(r, rec, rec.u, rec.v, rec.pt);
 
-            if (!rec.mat->scatter(r, rec, attenuation, scattered, pdf_value))
+            if (!rec.mat->scatter(r, rec, srec))
                 return emission;
-
-            hittable_pdf light_pdf(lights, rec.pt);
-            scattered = ray(rec.pt, light_pdf.generate(), r.time());
-            pdf_value = light_pdf.value(scattered.dir());
+            
+            if (srec.skip_pdf) {
+                return srec.attenuation * ray_color(srec.skip_pdf_ray, depth - 1, world, lights);
+            }
+            
+            float w = lights.empty() ? 0.0f : 0.5f;
+            mixture_pdf mixed_pdf(make_shared<hittable_pdf>(lights, rec.pt), srec.pdf_ptr, w);
+            ray scattered = ray(rec.pt, mixed_pdf.generate(), r.time());
+            float pdf_value = mixed_pdf.value(scattered.dir());
             
             float scattering_pdf = rec.mat->scattering_pdf(r, rec, scattered);
             
-            vec3 scatter_color = (attenuation * scattering_pdf * ray_color(scattered, depth - 1, world, lights)) / pdf_value;
+            vec3 scatter_color = (srec.attenuation * scattering_pdf * ray_color(scattered, depth - 1, world, lights)) / pdf_value;
             
             return emission + scatter_color;
         }
@@ -175,7 +178,7 @@ class camera {
             background(cf.background)
         {initialize();}
 
-        void render(const hittable& world, vector<uint8_t>& pixels, vector<thread>& threads, const hittable& lights=hittable_list()) {
+        void render(const hittable& world, const hittable& lights, vector<uint8_t>& pixels, vector<thread>& threads) {
             for (int j = 0; j < image_height; j+=th) {
                 clog << "\rScanlines remaining: " << (image_height - j) << ' ' << flush;
                 for (int i = 0; i < image_width; i+=tw) {

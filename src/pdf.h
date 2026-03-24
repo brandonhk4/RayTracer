@@ -60,4 +60,23 @@ class hittable_pdf : public pdf {
         }
 };
 
+class mixture_pdf : public pdf {
+    private:
+        shared_ptr<pdf> p0, p1;
+        float w;
+    
+    public:
+        mixture_pdf(shared_ptr<pdf> p0, shared_ptr<pdf> p1, float w) : 
+            p0(p0), p1(p1), w(std::clamp(w, 0.0f, 1.0f)) {}
+
+        float value(const vec3& direction) const override {
+            return w * p0->value(direction) + (1 - w) * p1->value(direction);
+        }
+
+        vec3 generate() const override {
+            if (random_float() < w) return p0->generate();
+            else return p1->generate();
+        }
+};
+
 #endif

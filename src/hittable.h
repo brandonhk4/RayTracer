@@ -24,6 +24,8 @@ class hittable {
 
     virtual bbox bounding_box() const = 0;
 
+    virtual bool empty() const { return true; }
+
     virtual float pdf_value(const vec3& origin, const vec3& direction) const {
         return 0.0f;
     }

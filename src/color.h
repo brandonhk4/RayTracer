@@ -14,6 +14,10 @@ void write_color(std::ostream& out, const vec3& pixel_color) {
     float g = pixel_color.y;
     float b = pixel_color.z;
 
+    if (r != r) r = 0.0f;
+    if (g != g) g = 0.0f;
+    if (b != b) b = 0.0f;
+
     r = linear_to_gamma(r);
     g = linear_to_gamma(g);
     b = linear_to_gamma(b);
@@ -31,6 +35,10 @@ void write_color(std::vector<std::uint8_t>::iterator& pixels, const vec3& pixel_
     float g = pixel_color.y;
     float b = pixel_color.z;
 
+    if (r != r) r = 0.0f;
+    if (g != g) g = 0.0f;
+    if (b != b) b = 0.0f;
+
     r = linear_to_gamma(r);
     g = linear_to_gamma(g);
     b = linear_to_gamma(b);
@@ -46,6 +54,10 @@ void write_color(std::vector<std::uint8_t>& pixels, const vec3& pixel_color, int
     float r = pixel_color.x;
     float g = pixel_color.y;
     float b = pixel_color.z;
+
+    if (r != r) r = 0.0f;
+    if (g != g) g = 0.0f;
+    if (b != b) b = 0.0f;
 
     r = linear_to_gamma(r);
     g = linear_to_gamma(g);

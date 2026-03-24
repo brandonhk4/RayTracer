@@ -2,6 +2,7 @@
 #define SPHERE_H
 
 #include "hittable.h"
+#include "onb.h"
 #include "raytracer.h"
 
 class sphere : public hittable {
@@ -22,6 +23,19 @@ class sphere : public hittable {
             u = phi / (2.0f * pi);
             v = theta / pi;
         }
+
+        static vec3 random_to_sphere(float radius, float dist_sq) {
+            float r1 = random_float();
+            float r2 = random_float();
+            float z = 1.0f + r2 * (std::sqrt(1.0f - radius * radius / dist_sq) - 1);
+
+            float phi = 2.0f * pi * r1;
+            float sin = std::sqrt(1 - z * z);
+            float x = std::cos(phi) * sin;
+            float y = std::sin(phi) * sin;
+
+            return vec3(x, y, z);
+        } 
 
     public:    
         sphere(const vec3& cen, float rad, shared_ptr<material> mat) : 
@@ -66,6 +80,24 @@ class sphere : public hittable {
         }
 
         bbox bounding_box() const override { return bound_box; }
+
+        float pdf_value(const vec3& origin, const vec3& direction) const override {
+            hit_record rec;
+            if (!this->hit(ray(origin, direction), interval(0.001, infinity), rec)) return 0;
+
+            float dist_sq = (center.pt() - origin).length_squared();
+            float cos = std::sqrt(1.0f - radius * radius / dist_sq);
+            float solid_angle = 2.0f * pi * (1.0f - cos);
+
+            return 1.0f / solid_angle;
+        }
+
+        vec3 random(const vec3& origin) const override {
+            vec3 direction = center.pt() - origin;
+            float dist_sq = direction.length_squared();
+            onb uvw(direction);
+            return uvw.transform(random_to_sphere(radius, dist_sq));
+        }
 };
 
 #endif
