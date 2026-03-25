@@ -19,12 +19,7 @@ const mat4 basis
 
 class bezier_curve {
     private:
-        union {
-            vec4 dim[3];
-            struct {
-                vec4 x, y, z;
-            };
-        };
+        vec4 x, y, z;
 
     public:
         bezier_curve(vec3 p0, vec3 p1, vec3 p2, vec3 p3) :
@@ -49,12 +44,7 @@ class bezier_curve {
 
 class bezier_patch {
     private:
-        union {
-            mat4 dim[3];
-            struct {
-                mat4 x, y, z;
-            };
-        };
+        mat4 x, y, z;
 
     public:
         bezier_patch(const mat4& x, const mat4& y, const mat4& z) : 

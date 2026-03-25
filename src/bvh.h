@@ -8,7 +8,7 @@
 #include <vector>
 #include <functional>
 #include <iterator>
-#include <unordered_map>
+#include <cfloat>
 
 // LOOK AT THE LINK IN THE GOOGLE DOC
 // TODO: Make a Linear BVH or a Hybrid BVH

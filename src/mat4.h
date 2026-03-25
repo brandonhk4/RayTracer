@@ -10,16 +10,23 @@ class mat4 {
         union {
             float e[16];
             vec4 v[4];
-            struct {
-                vec4 r0, r1, r2, r3;
-            };
         };
 
         static mat4 eye;
 
         mat4() : mat4(0.0f) {}
-        mat4(float d) : r0(d), r1(d), r2(d), r3(d) {}
-        mat4(vec4 r0, vec4 r1, vec4 r2, vec4 r3) : r0(r0), r1(r1), r2(r2), r3(r3) {}
+        mat4(float d) {
+            v[0] = vec4(d);
+            v[1] = vec4(d);
+            v[2] = vec4(d);
+            v[3] = vec4(d);
+        }
+        mat4(vec4 v0, vec4 v1, vec4 v2, vec4 v3) {
+            v[0] = v0;
+            v[1] = v1;
+            v[2] = v2;
+            v[3] = v3;
+        }
         mat4(float e0, float e1, float e2, float e3, 
              float e4, float e5, float e6, float e7, 
              float e8, float e9, float e10, float e11, 
@@ -43,7 +50,7 @@ class mat4 {
             e[15] = e15;
         }
         
-        mat4 operator-() const { return mat4(-r0, -r1, -r2, -r3); }
+        mat4 operator-() const { return mat4(-v[0], -v[1], -v[2], -v[3]); }
         vec4 operator[](int i) const { return v[i]; }
         vec4& operator[](int i) { return v[i]; }
 
@@ -108,7 +115,7 @@ class mat4 {
         }
 
         mat4 x(const mat4& m) const {
-            return mat4(m.r0 * r0, m.r1 * r1, m.r2 * r2, m.r3 * r3);
+            return mat4(m.v[0] * v[0], m.v[1] * v[1], m.v[2] * v[2], m.v[3] * v[3]);
         }
 };
 
@@ -121,19 +128,19 @@ mat4 mat4::eye
     );
 
 inline std::ostream& operator<<(std::ostream& out, const mat4& m) {
-    return out << m.r0 << '\n' << m.r1 << '\n' << m.r2 << '\n' << m.r3;
+    return out << m.v[0] << '\n' << m.v[1] << '\n' << m.v[2] << '\n' << m.v[3];
 }
 
 inline mat4 operator+(const mat4& m, const mat4& n) {
-    return mat4(m.r0 + n.r0, m.r1 + n.r1, m.r2 + n.r2, m.r3 + n.r3);
+    return mat4(m.v[0] + n.v[0], m.v[1] + n.v[1], m.v[2] + n.v[2], m.v[3] + n.v[3]);
 }
 
 inline mat4 operator-(const mat4& m, const mat4& n) {
-    return mat4(m.r0 - n.r0, m.r1 - n.r1, m.r2 - n.r2, m.r3 - n.r3);
+    return mat4(m.v[0] - n.v[0], m.v[1] - n.v[1], m.v[2] - n.v[2], m.v[3] - n.v[3]);
 }
 
 inline mat4 operator*(float t, const mat4& m) {
-    return mat4(t * m.r0, t * m.r1, t * m.r2, t * m.r3);
+    return mat4(t * m.v[0], t * m.v[1], t * m.v[2], t * m.v[3]);
 }
 
 inline mat4 operator*(const mat4& m, float t) {
@@ -141,7 +148,7 @@ inline mat4 operator*(const mat4& m, float t) {
 }
 
 inline vec4 operator*(const mat4& m, const vec4& v) {
-    return vec4(dot(m.r0, v), dot(m.r1, v), dot(m.r2, v), dot(m.r3, v));
+    return vec4(dot(m.v[0], v), dot(m.v[1], v), dot(m.v[2], v), dot(m.v[3], v));
 }
 
 inline vec4 operator*(const vec4& v, const mat4& m) {

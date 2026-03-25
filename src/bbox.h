@@ -10,53 +10,51 @@ class bbox {
         bool dirty = true;
 
         void recompute() {
-            barea = 2 * (x.size() * y.size() +
-                         x.size() * z.size() + 
-                         y.size() * z.size());
-            bvolume = x.size() * y.size() * z.size();
+            barea = 2 * (i[0].size() * i[1].size() +
+                         i[0].size() * i[2].size() + 
+                         i[1].size() * i[2].size());
+            bvolume = i[0].size() * i[1].size() * i[2].size();
             dirty = false;
         }
 
         void pad() {
             float delta = 0.0001f;
 
-            if (x.size() < delta) x.max += delta;
-            if (y.size() < delta) y.max += delta;
-            if (z.size() < delta) z.max += delta;
+            if (i[0].size() < delta) i[0].max += delta;
+            if (i[1].size() < delta) i[1].max += delta;
+            if (i[2].size() < delta) i[2].max += delta;
         }
 
     public:
-        union { 
-            interval intervals[3];
-            struct {interval x, y, z;};
-        };
+        interval i[3];
 
         bbox() : bbox(vec3(), vec3()) {}
         bbox(vec3 min, vec3 max) {
             for (int axis = 0; axis < 3; ++axis) {
-                intervals[axis] = (max[axis] > min[axis]) ? interval(min[axis], max[axis]) : interval(max[axis], min[axis]);
+                i[axis] = (max[axis] > min[axis]) ? interval(min[axis], max[axis]) : interval(max[axis], min[axis]);
             }
 
             pad();
         }
 
-        bbox(const interval& x, const interval& y, const interval& z) :
-            x(x), y(y), z(z) { pad(); }
+        bbox(const interval& x, const interval& y, const interval& z) { 
+            i[0] = x;
+            i[1] = y;
+            i[2] = z;
+            pad();
+        }
 
-        bbox(const bbox& a, const bbox& b) : 
-            x(a.x, b.x),
-            y(a.y, b.y),
-            z(a.z, b.z) {}
+        bbox(const bbox& a, const bbox& b) {
+            i[0] = interval(a[0], b[0]);
+            i[1] = interval(a[1], b[1]);
+            i[2] = interval(a[2], b[2]);
+        }
 
-        bbox(const bbox& box) :
-            x(box.x),
-            y(box.y),
-            z(box.z) {}
-
-        interval& operator[](int i) { return intervals[i]; };
+        interval operator[](int k) const { return i[k]; }
+        interval& operator[](int k) { return i[k]; }
 
         bool intersects(const vec3& point) const {
-            return x.contains(point.x) && y.contains(point.y) && z.contains(point.z);
+            return i[0].contains(point.x) && i[1].contains(point.y) && i[2].contains(point.z);
         }
 
         double area() {
@@ -65,17 +63,17 @@ class bbox {
         }
 
         float left_area(int axis, float position) {
-            interval prime(intervals[axis].min, position);
-            return 2.0f * (prime.size() * intervals[(axis + 1) % 3].size() +
-                           prime.size() * intervals[(axis + 2) % 3].size() + 
-                           intervals[(axis + 1) % 3].size() * intervals[(axis + 2) % 3].size());
+            interval prime(i[axis].min, position);
+            return 2.0f * (prime.size() * i[(axis + 1) % 3].size() +
+                           prime.size() * i[(axis + 2) % 3].size() + 
+                           i[(axis + 1) % 3].size() * i[(axis + 2) % 3].size());
         }
 
         float right_area(int axis, float position) {
-            interval prime(position, intervals[axis].max);
-            return 2.0f * (prime.size() * intervals[(axis + 1) % 3].size() +
-                           prime.size() * intervals[(axis + 2) % 3].size() + 
-                           intervals[(axis + 1) % 3].size() * intervals[(axis + 2) % 3].size());
+            interval prime(position, i[axis].max);
+            return 2.0f * (prime.size() * i[(axis + 1) % 3].size() +
+                           prime.size() * i[(axis + 2) % 3].size() + 
+                           i[(axis + 1) % 3].size() * i[(axis + 2) % 3].size());
         }
 
         double volume() {
@@ -88,7 +86,7 @@ class bbox {
             const vec3& dir   = r.dir();
 
             for (int axis = 0; axis < 3; ++axis) {
-                const interval& ax = intervals[axis];
+                const interval& ax = i[axis];
                 float t0 = (ax.min - point[axis]) / dir[axis];
                 float t1 = (ax.max - point[axis]) / dir[axis];
             
@@ -108,7 +106,7 @@ class bbox {
 };
 
 bbox operator+(const bbox& box, const vec3& offset) {
-    return bbox(box.x + offset.x, box.y + offset.y, box.z + offset.z);
+    return bbox(box[0] + offset.x, box[1] + offset.y, box[2] + offset.z);
 }
 
 bbox operator+(const vec3& offset, const bbox& box) {

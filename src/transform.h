@@ -57,9 +57,9 @@ class rotate_x : public hittable {
             for (int i = 0; i < 2; ++i) {
                 for (int j = 0; j < 2; ++j) {
                     for (int k = 0; k < 2; ++k) {
-                        float x = i * bound_box.x.max + (1 - i) * bound_box.x.min;
-                        float y = j * bound_box.y.max + (1 - j) * bound_box.y.min;
-                        float z = k * bound_box.z.max + (1 - k) * bound_box.z.min;
+                        float x = i * bound_box[0].max + (1 - i) * bound_box[0].min;
+                        float y = j * bound_box[1].max + (1 - j) * bound_box[1].min;
+                        float z = k * bound_box[2].max + (1 - k) * bound_box[2].min;
 
                         float newy = cos_theta * y - sin_theta * z;
                         float newz = sin_theta * y + cos_theta * z;
@@ -132,9 +132,9 @@ class rotate_y : public hittable {
             for (int i = 0; i < 2; ++i) {
                 for (int j = 0; j < 2; ++j) {
                     for (int k = 0; k < 2; ++k) {
-                        float x = i * bound_box.x.max + (1 - i) * bound_box.x.min;
-                        float y = j * bound_box.y.max + (1 - j) * bound_box.y.min;
-                        float z = k * bound_box.z.max + (1 - k) * bound_box.z.min;
+                        float x = i * bound_box[0].max + (1 - i) * bound_box[0].min;
+                        float y = j * bound_box[1].max + (1 - j) * bound_box[1].min;
+                        float z = k * bound_box[2].max + (1 - k) * bound_box[2].min;
 
                         float newx =  cos_theta * x + sin_theta * z;
                         float newz = -sin_theta * x + cos_theta * z;
@@ -207,9 +207,9 @@ class rotate_z : public hittable {
             for (int i = 0; i < 2; ++i) {
                 for (int j = 0; j < 2; ++j) {
                     for (int k = 0; k < 2; ++k) {
-                        float x = i * bound_box.x.max + (1 - i) * bound_box.x.min;
-                        float y = j * bound_box.y.max + (1 - j) * bound_box.y.min;
-                        float z = k * bound_box.z.max + (1 - k) * bound_box.z.min;
+                        float x = i * bound_box[0].max + (1 - i) * bound_box[0].min;
+                        float y = j * bound_box[1].max + (1 - j) * bound_box[1].min;
+                        float z = k * bound_box[2].max + (1 - k) * bound_box[2].min;
 
                         float newx = cos_theta * x - sin_theta * y;
                         float newy = sin_theta * x + cos_theta * y;

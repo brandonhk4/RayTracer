@@ -5,12 +5,7 @@
 
 class onb {
     public:
-        union{
-            struct{
-                vec3 u, v, w;
-            };
-            vec3 axis[3];
-        };
+        vec3 u, v, w;
 
         onb(const vec3& n) {
             w = n.dir();
