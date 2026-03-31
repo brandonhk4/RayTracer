@@ -281,16 +281,16 @@ pair<hittable_list, hittable_list> cornell_box(config& cf) {
 
     // objects
     auto aluminum = make_shared<metal>(vec3(0.8f, 0.85f, 0.88f));
-    auto box1 = make_shared<transform_o>(box(vec3(), vec3(165.0f, 330.0f, 165.0f), aluminum));
-    box1->rotate(15.0f, transform_o::ROTATE_Y);
-    box1->translate(vec3(265.0f, 0.0f, 295.0f));
+    auto box1 = make_shared<transform_o>(box(vec3(), vec3(165.0f, 330.0f, 165.0f), aluminum))
+                ->rotate(15.0f, vec3(0.0f, 1.0f, 0.0f))
+                ->translate(vec3(265.0f, 0.0f, 295.0f));
     world.add(box1);
 
     auto glass = make_shared<dielectric>(1.5f); 
     lights.add(make_shared<sphere>(vec3(190.0f, 255.0f, 190.f), 90.0f, glass));
-    auto box2 = make_shared<transform_o>(box(vec3(), vec3(165.0f), white));
-    box2->rotate(-18.0f, transform_o::ROTATE_Y);
-    box2->translate(vec3(130.0f, 0.0f, 65.0f));
+    auto box2 = make_shared<transform_o>(box(vec3(), vec3(165.0f), white))
+                ->rotate(-18.0f, vec3(0.0f, 1.0f, 0.0f))
+                ->translate(vec3(130.0f, 0.0f, 65.0f));
     world.add(box2);
     world.add(lights);
 
@@ -310,8 +310,9 @@ pair<hittable_list, hittable_list> cornell_box(config& cf) {
     return pair<hittable_list, hittable_list>(world, lights);
 }
 
-hittable_list cornell_smoke(config& cf) {
+pair<hittable_list, hittable_list> cornell_smoke(config& cf) {
     hittable_list world;
+    hittable_list lights;
 
     auto red   = make_shared<lambertian>(vec3(.65f, .05f, .05f));
     auto white = make_shared<lambertian>(vec3(.73f, .73f, .73f));
@@ -324,18 +325,19 @@ hittable_list cornell_smoke(config& cf) {
     world.add(make_shared<quad>(vec3(555.0f, 555.0f, 555.0f), vec3(-555.0f,   0.0f,    0.0f), vec3(  0.0f,   0.0f, -555.0f), white));
     world.add(make_shared<quad>(vec3(  0.0f,   0.0f, 555.0f), vec3(   0.0f, 555.0f,    0.0f), vec3(555.0f,   0.0f,    0.0f), white));
 
-    world.add(make_shared<quad>(vec3(343.0f, 554.0f, 332.0f), vec3(-130.0f,   0.0f, 0.0f), vec3(0.0f,   0.0f, -105.0f), light));
+    lights.add(make_shared<quad>(vec3(343.0f, 554.0f, 332.0f), vec3(-130.0f,   0.0f, 0.0f), vec3(0.0f,   0.0f, -105.0f), light));
 
-    auto box1 = make_shared<transform_o>(box(vec3(), vec3(165.0f, 330.0f, 165.0f), white));
-    box1->rotate(15.0f, transform_o::ROTATE_Y);
-    box1->translate(vec3(265.0f, 0.0f, 295.0f));
+    auto box1 = make_shared<transform_o>(box(vec3(), vec3(165.0f, 330.0f, 165.0f), white))
+                ->rotate(15.0f, vec3(0.0f, 1.0f, 0.0f))
+                ->translate(vec3(265.0f, 0.0f, 295.0f));
     
-    auto box2 = make_shared<transform_o>(box(vec3(), vec3(165.0f), white));
-    box2->rotate(-18.0f, transform_o::ROTATE_Y);
-    box2->translate(vec3(130.0f, 0.0f, 65.0f));
+    auto box2 = make_shared<transform_o>(box(vec3(), vec3(165.0f), white))
+                ->rotate(-18.0f, vec3(0.0f, 1.0f, 0.0f))
+                ->translate(vec3(130.0f, 0.0f, 65.0f));
 
     world.add(make_shared<constant_medium>(box1, 0.01f, vec3()));
     world.add(make_shared<constant_medium>(box2, 0.01f, vec3(1.0f)));
+    world.add(lights);
 
     cf.aspect_ratio = 1.0f;
     cf.image_width  = 600;
@@ -350,7 +352,7 @@ hittable_list cornell_smoke(config& cf) {
 
     cf.defocus_angle = 0.0f;
 
-    return world;
+    return pair<hittable_list, hittable_list>(world, lights);
 }
 
 pair<hittable_list, hittable_list> test(config& cf) {
@@ -443,7 +445,7 @@ pair<hittable_list, hittable_list> final_scene(config& cf) {
 
     world.add(make_shared<transform_o>(
         make_shared<bvh_node>(boxes2))
-            ->rotate(15, transform_o::ROTATE_Y)
+            ->rotate(15, vec3(0.0f, 1.0f, 0.0f))
             ->translate(vec3(-100.0f, 270.0f, 395.0f))
     );
 
@@ -555,7 +557,9 @@ int main(int argc, char** argv) {
             lights = out.second;
             break;
         case 8:
-            world = cornell_smoke(cf);
+            out = cornell_smoke(cf);
+            world = out.first;
+            lights = out.second;
             break;
         case 9:
             out = final_scene(cf);

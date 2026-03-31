@@ -4,7 +4,7 @@ This will be a project that fully implements a Path Tracer from scratch, followi
 
 I will be updating this README as I add more features
 
-### Camera configs:
+### CLI configs:
 * -h / --help
 * --out (output file)
 * --bvh (builds a bvh of the scene to decrease render time)
@@ -29,10 +29,11 @@ lambertian, metal, dielectric, isotropic
 solid color, checker, image, perlin noise
 
 ### Objects:
-spheres, quadrilaterals (and boxes), triangles, constant mediums (for gaseous effects), bezier patches
+spheres, quadrilaterals (and boxes), triangles, constant mediums (for gaseous effects), bezier patches<br>
+Transformations on objects are done with the transform_o class, which uses dual quaternions to store transformations.
 
 ### Math Helpers:
-vec3, vec4, mat4, onb, pdf
+vec3, vec4, mat4, quat, onb, pdf
 
 ### Existing Accelerations
 top-down BVH tree, threads, light importance sampling
@@ -49,5 +50,7 @@ top-down BVH tree, threads, light importance sampling
 ![Bouncing balls](renders/bouncing_balls.png)
 ![Full scene](renders/final_scene_full.png)
 ![Cornell box](renders/mixed_sample.png)
+![Cornell smoke](renders/cornell_smoke.png)
 ![Improved Cornell box](renders/cornell_box_p2.png)
+![Simple light](renders/simple_light.png)
 ![Bezier patch](renders/bezier_patch_p3.png)

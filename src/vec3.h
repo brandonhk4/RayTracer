@@ -12,6 +12,7 @@ class vec3 {
     public:
         union {
             struct { float x, y, z; };
+            struct { float i, j, k; };
             float e[3];
         };
 
@@ -27,6 +28,13 @@ class vec3 {
             x += v.x;
             y += v.y;
             z += v.z;
+            return *this;
+        }
+
+        vec3& operator-=(const vec3& v) {
+            x -= v.x;
+            y -= v.y;
+            z -= v.z;
             return *this;
         }
 
