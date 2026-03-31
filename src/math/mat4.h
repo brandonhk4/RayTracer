@@ -1,8 +1,6 @@
 #ifndef MAT4_H
 #define MAT4_H
 
-#include "raytracer.h"
-
 #include "vec4.h"
 
 class mat4 {

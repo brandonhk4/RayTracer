@@ -35,9 +35,9 @@ inline int random_int(int min, int max) {
 
 // Common Headers
 
-#include "vec3.h"
-#include "color.h"
-#include "ray.h"
-#include "interval.h"
+#include "math/vec3.h"
+#include "math/ray.h"
+#include "utility/color.h"
+#include "utility/interval.h"
 
 #endif

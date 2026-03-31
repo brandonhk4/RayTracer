@@ -1,8 +1,8 @@
 #ifndef HITTABLE_H
 #define HITTABLE_H
 
-#include "ray.h"
-#include "bbox.h"
+#include "../math/ray.h"
+#include "../utility/bbox.h"
 
 class material;
 

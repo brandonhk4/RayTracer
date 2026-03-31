@@ -1,7 +1,8 @@
 #ifndef BBOX_H
 #define BBOX_H
 
-#include "ray.h"
+#include "../raytracer.h"
+#include "../math/ray.h"
 
 class bbox {
     private:

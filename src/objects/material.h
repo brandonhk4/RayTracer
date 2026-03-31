@@ -3,7 +3,7 @@
 
 #include "hittable.h"
 #include "texture.h"
-#include "pdf.h"
+#include "../math/pdf.h"
 
 struct scatter_record {
     vec3 attenuation;

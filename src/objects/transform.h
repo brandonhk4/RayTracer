@@ -2,7 +2,7 @@
 #define TRANSFORM_H
 
 #include "hittable.h"
-#include "quat.h"
+#include "../math/quat.h"
 
 class transform_o : public hittable {
     private:

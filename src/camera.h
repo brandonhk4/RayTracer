@@ -1,13 +1,11 @@
 #ifndef CAMERA_H
 #define CAMERA_H
 
-#include "hittable.h"
-#include "material.h"
-#include "pdf.h"
+#include "objects/hittable.h"
+#include "objects/material.h"
+#include "math/pdf.h"
 
 #include <thread>
-
-#include <string>
 
 using namespace std;
 

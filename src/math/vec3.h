@@ -1,7 +1,7 @@
 #ifndef VEC3_H
 #define VEC3_H
 
-#include "raytracer.h"
+#include "../raytracer.h"
 
 #include <string>
 #include <regex>

@@ -1,7 +1,7 @@
 #ifndef QUAT_H
 #define QUAT_H
 
-#include "raytracer.h"
+#include "../raytracer.h"
 
 class quat {
     public:

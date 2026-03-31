@@ -8,9 +8,9 @@
 
 // #define STB_IMAGE_IMPLEMENTATION
 // #define STBI_FAILURE_USERMSG
-#include "external/stb/stb.h"
+#include "../external/stb/stb.h"
 #define STBI_FREE
-#include "external/stb/stb_image.h"
+#include "../external/stb/stb_image.h"
 
 #include <cstdlib>
 #include <iostream>

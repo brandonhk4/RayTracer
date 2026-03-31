@@ -1,7 +1,7 @@
 #ifndef PARSER_H
 #define PARSER_H
 
-#include "camera.h"
+#include "../camera.h"
 
 using namespace std;
 

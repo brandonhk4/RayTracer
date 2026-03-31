@@ -1,7 +1,7 @@
 #ifndef COLOR_H
 #define COLOR_H
 
-#include "vec3.h"
+#include "../math/vec3.h"
 #include "interval.h"
 
 inline float linear_to_gamma(float linear_component) {

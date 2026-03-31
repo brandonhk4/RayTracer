@@ -1,23 +1,23 @@
 #include <SFML/Graphics.hpp>
 // Replace this with imGUI one day
 
-// #include "OpenCLHelper.h"
-
 #include <thread>
 
+#include "objects/hittable.h"
+#include "objects/hittable_list.h"
+#include "objects/material.h"
+#include "objects/constant_medium.h"
+#include "objects/sphere.h"
+#include "objects/quad.h"
+#include "objects/triangle.h"
+#include "objects/bezier.h"
+#include "objects/transform.h"
+
+#include "utility/bvh.h"
+#include "utility/InputParser.h"
+
 #include "raytracer.h"
-#include "hittable.h"
-#include "hittable_list.h"
-#include "bvh.h"
-#include "material.h"
-#include "constant_medium.h"
-#include "sphere.h"
-#include "quad.h"
-#include "triangle.h"
-#include "bezier.h"
-#include "transform.h"
 #include "camera.h"
-#include "InputParser.h"
 
 using namespace std;
 
@@ -116,7 +116,7 @@ hittable_list bouncing_balls(config& cf) {
     cf.aa_samples = 50;
     cf.max_depth = 16;
     cf.tw = 256;
-    cf.th = 144;
+    cf.th = 192;
 
     cf.vfov = 20.0f;
     cf.pos = vec3(13.0f, 2.0f, 3.0f);

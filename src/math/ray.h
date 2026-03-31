@@ -1,7 +1,7 @@
 #ifndef RAY_H
 #define RAY_H
 
-#include "raytracer.h"
+#include "../raytracer.h"
 
 class ray {
     private:

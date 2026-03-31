@@ -18,10 +18,9 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 file ( GLOB SOURCE
   src/main.cpp
   src/*.h
-  src/render.cl
 )
 
-include_directories ( src )
+include_directories ( src src/math src/objects src/utility )
 
 # SFML
 

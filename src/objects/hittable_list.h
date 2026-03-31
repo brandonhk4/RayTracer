@@ -2,7 +2,7 @@
 #define HITTABLE_LIST_H
 
 #include "hittable.h"
-#include "bbox.h"
+#include "../utility/bbox.h"
 #include "sphere.h"
 
 #include <vector>

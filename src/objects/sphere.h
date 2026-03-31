@@ -2,8 +2,8 @@
 #define SPHERE_H
 
 #include "hittable.h"
-#include "onb.h"
-#include "raytracer.h"
+#include "../math/onb.h"
+#include "../raytracer.h"
 
 class sphere : public hittable {
     private:

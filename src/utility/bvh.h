@@ -2,8 +2,8 @@
 #define BVH_H
 
 #include "bbox.h"
-#include "hittable.h"
-#include "hittable_list.h"
+#include "../objects/hittable.h"
+#include "../objects/hittable_list.h"
 
 #include <vector>
 #include <functional>

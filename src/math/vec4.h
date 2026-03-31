@@ -1,7 +1,7 @@
 #ifndef VEC4_H
 #define VEC4_H
 
-#include "raytracer.h"
+#include "../raytracer.h"
 
 class vec4 {
     public:
