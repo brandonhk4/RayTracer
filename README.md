@@ -21,6 +21,7 @@ I will be updating this README as I add more features
 * --defocus_angle (indicates the amount of blur an object will have outside of the area of focus)
 * --focus_distance (if defocus angle is non-zero, this sets the area in focus in front of the camera)
 * --background (sets background color, should be noted that this counts as a light source)
+* --cubemap (sets backgroun cubemap, overrides background color, scene 11 is an example, convention can be found in images/cubemaps)
 
 ### Materials:
 lambertian, metal, dielectric, isotropic
@@ -54,3 +55,4 @@ top-down BVH tree, threads, light importance sampling
 ![Improved Cornell box](renders/cornell_box_p2.png)
 ![Simple light](renders/simple_light.png)
 ![Bezier patch](renders/bezier_patch_p3.png)
+![Cubemap example](renders/cubemap.png)

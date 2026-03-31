@@ -73,7 +73,8 @@ vector<string> InputParser::options = {
             "--vertical_up",
             "--defocus_angle",
             "--focus_distance",
-            "--background"
+            "--background",
+            "--cubemap"
         };
 
 void configure(const InputParser& input, config& cf) {
@@ -111,6 +112,9 @@ void configure(const InputParser& input, config& cf) {
 
     const string background_str = input.getCmdOption("--background");
     if (!background_str.empty()) cf.background = vec3::stov(background_str);
+
+    const string cubemap_str = input.getCmdOption("--cubemap");
+    if (!cubemap_str.empty()) cf.cmap = cubemap_str.c_str();
 }
 
 #endif

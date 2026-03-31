@@ -4,6 +4,7 @@
 #include "objects/hittable.h"
 #include "objects/material.h"
 #include "math/pdf.h"
+#include "utility/cubemap.h"
 
 #include <thread>
 
@@ -31,6 +32,7 @@ struct config {
     float focus_dist = 0.0f;               // Distance from camera lens to plane of perfect focus
 
     vec3 background;
+    const char* cmap = "";
 };
 
 class camera {
@@ -41,7 +43,8 @@ class camera {
         vec3 pixel_delta_v;         // Vertical offset of pixel
         vec3 defocus_disk_u;        // Horizontal disk radius
         vec3 defocus_disk_v;        // Vertial disk radius
-        int tw, th;
+        int tw, th;                 // Width/Height of portion of image rendered by threads
+        cubemap cmap;               // Cubemap
         
         void initialize() {
             image_height = max(int(image_width / aspect_ratio), 1);
@@ -100,6 +103,7 @@ class camera {
             hit_record rec;
 
             if (!world.hit(r, interval(0.001f, infinity), rec)) {
+                if (cmap) return cmap.value(r);
                 return background;
             }
 
@@ -173,7 +177,8 @@ class camera {
             vup(cf.vup),
             defocus_angle(cf.defocus_angle),
             focus_dist(cf.focus_dist),
-            background(cf.background)
+            background(cf.background),
+            cmap(cf.cmap)
         {initialize();}
 
         void render(const hittable& world, const hittable& lights, vector<uint8_t>& pixels, vector<thread>& threads) {

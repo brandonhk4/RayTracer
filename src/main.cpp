@@ -95,7 +95,9 @@ int main(int argc, char** argv) {
             world = checkered_spheres(cf);
             break;
         case 3:
-            world = earth(cf);
+            out = earth(cf);
+            world = out.first;
+            lights = out.second;
             break;
         case 4:
             world = perlin_spheres(cf);
@@ -125,6 +127,11 @@ int main(int argc, char** argv) {
             break;
         case 10:
             out = bezier(cf);
+            world = out.first;
+            lights = out.second;
+            break;
+        case 11:
+            out = scene_mirror(cf);
             world = out.first;
             lights = out.second;
             break;

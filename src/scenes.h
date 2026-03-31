@@ -9,6 +9,7 @@
 #include "objects/transform.h"
 
 #include "utility/bvh.h"
+#include "utility/cubemap.h"
 
 #include "raytracer.h"
 #include "camera.h"
@@ -103,12 +104,17 @@ hittable_list checkered_spheres(config& cf) {
     return world;
 }
 
-hittable_list earth(config& cf) {
+pair<hittable_list, hittable_list> earth(config& cf) {
     hittable_list world;
+    hittable_list lights;
 
     auto earth_texture = make_shared<image_texture>("earth.jpg");
     auto earth_surface = make_shared<lambertian>(earth_texture);
     world.add(make_shared<sphere>(vec3(), 2.0f, earth_surface));
+
+    auto light = make_shared<emissive>(vec3(15.0f));
+    lights.add(make_shared<quad>(vec3(18.0f, -4.0f, -4.0f), vec3(0.0f, 0.0f, 8.0f), vec3(0.0f, 8.0f, 0.0f), light));
+    world.add(lights);
 
     cf.image_width = 1024;
     cf.aa_samples = 50;
@@ -121,9 +127,9 @@ hittable_list earth(config& cf) {
     cf.defocus_angle = 0.6f;
     cf.focus_dist = 10.0f;
 
-    cf.background = vec3(0.5f, 0.7f, 0.8f);
+    cf.background = vec3(0.0f);
 
-    return world;
+    return pair<hittable_list, hittable_list>(world, lights);
 }
 
 hittable_list perlin_spheres(config& cf) {
@@ -444,6 +450,28 @@ pair<hittable_list, hittable_list> bezier(config& cf) {
     cf.vfov     = 20.0f;
     cf.pos      = vec3(26.0f, 3.0f, 6.0f);
     cf.target   = vec3(0.0f, 2.0f, 0.0f);
+
+    return pair<hittable_list, hittable_list>(world, lights);
+}
+
+pair<hittable_list, hittable_list> scene_mirror(config& cf) {
+    hittable_list world;
+    hittable_list lights;
+
+    auto reflect = make_shared<metal>(vec3(1.0f));
+    world.add(make_shared<sphere>(vec3(), 2.0f, reflect));
+
+    cf.image_width = 1024;
+    cf.aa_samples = 50;
+    cf.max_depth = 16;
+
+    cf.vfov = 20.0f;
+    cf.pos = vec3(13.0f, 2.0f, 3.0f);
+    // cf.pos = vec3(-3.0f, 2.0f, 13.0f);
+    cf.target = vec3();
+
+    cf.background = vec3(0.5f);
+    cf.cmap = "images/cubemaps/cubemap_iceriver";
 
     return pair<hittable_list, hittable_list>(world, lights);
 }

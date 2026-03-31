@@ -1,4 +1,6 @@
 build/
 *.png 
 !renders/*.png
+!images/cubemaps/*/*.png
+!images/cubemaps/orientation_convention.png
 out.txt
