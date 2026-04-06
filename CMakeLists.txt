@@ -51,5 +51,5 @@ FetchContent_MakeAvailable(SFML)
 add_executable ( RayTracer ${SOURCE} )
 target_compile_features( RayTracer PRIVATE cxx_std_17 )
 target_link_libraries ( RayTracer PRIVATE 
-# SFML::Graphics SFML::Window OpenCL::OpenCL OpenCL::HeadersCpp)
 SFML::Graphics SFML::Window)
+#OpenCL::OpenCL OpenCL::HeadersCpp)

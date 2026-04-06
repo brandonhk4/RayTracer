@@ -216,6 +216,14 @@ class camera {
         const int width() const { return image_width; }
 
         const int height() const { return image_height; }
+
+        const onb basis() const { 
+            vec3 forward, right, up;
+            forward = (target - pos).dir();
+            right = cross(forward, vup.dir()).dir();
+            up = cross(right, forward);
+            return onb(right, up, forward);
+        }
 };
 
 #endif

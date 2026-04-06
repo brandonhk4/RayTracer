@@ -13,10 +13,18 @@
 
 using namespace std;
 
-sf::Image display(vector<uint8_t>& pixels, sf::Vector2u size) {
-    sf::RenderWindow window(sf::VideoMode(size), "RayTracer", sf::Style::Default, sf::State::Windowed);
+sf::Image display(vector<uint8_t>& pixels, sf::Vector2u size, onb basis) {
+    sf::RenderWindow window(sf::VideoMode(size + sf::Vector2u{0u, 24u}), "RayTracer", sf::Style::Default, sf::State::Windowed);
     sf::Texture texture(size);
     sf::Sprite sprite(texture);
+
+    sf::Font font;
+    font.openFromFile("assets/Merriweather.ttf");
+    sf::Text text(font);
+    text.setCharacterSize(20);
+    text.setOutlineColor(sf::Color::White);
+    text.setOutlineThickness(0.1f);
+    text.setPosition({0.0f, (float)(size.y)});
 
     // To prevent double clicks
     sf::Vector2i prevPos;
@@ -37,8 +45,18 @@ sf::Image display(vector<uint8_t>& pixels, sf::Vector2u size) {
                 sf::Vector2i mousePos = sf::Mouse::getPosition(window);
                 if (prevPos != mousePos && mousePos.x <= size.x && mousePos.y <= size.y) {
                     int index = (mousePos.x + mousePos.y * size.x) * 4;
-                    cout << "Pixel at (" << mousePos.x << ", " << mousePos.y << "): "; 
-                    cout << '(' << int(pixels[index]) << ", " << int(pixels[index + 1]) << ", " << int(pixels[index + 2]) << ")\n";
+
+                    float u =  ((2.0f * mousePos.x + 1.0f) / size.x) - 1.0f;
+                    float v = -((2.0f * mousePos.y + 1.0f) / size.y) + 1.0f;
+                    vec3 dir = basis.transform({u, v, 1.0f}).dir();
+
+                    stringstream sstream;
+                    sstream << "Pixel at (" << mousePos.x << ", " << mousePos.y << "): "; 
+                    sstream << '(' << int(pixels[index]) << ", " << int(pixels[index + 1]) << ", " << int(pixels[index + 2]) << "); ";
+                    sstream << "Ray: (" << dir << ")\n";
+
+                    text.setString(sstream.str());
+                    text.setFillColor({pixels[index], pixels[index + 1], pixels[index + 2]});
                     prevPos = mousePos;
                 }
             }
@@ -46,10 +64,15 @@ sf::Image display(vector<uint8_t>& pixels, sf::Vector2u size) {
             if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Escape)) {
                 window.close();
             }
+
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Backspace)) {
+                text.setString("");
+            }
         }
         texture.update(pixels.data());
         window.clear();
         window.draw(sprite);
+        window.draw(text);
         window.display();
     }
 
@@ -140,6 +163,7 @@ int main(int argc, char** argv) {
     configure(input, cf);
 
     camera cam(cf);
+    onb basis = cam.basis();
     if (tree) world = hittable_list(make_shared<bvh_node>(world));
 
     vector<uint8_t> pixels(cam.width() * cam.height() * 4);
@@ -149,7 +173,7 @@ int main(int argc, char** argv) {
     if (window_display) {
         thread render(&camera::render, &cam, ref(world), ref(lights), ref(pixels), ref(threads));
 
-        sf::Image image(display(pixels, { (unsigned int)cam.width(), (unsigned int)cam.height() }));
+        sf::Image image(display(pixels, { (unsigned int)cam.width(), (unsigned int)cam.height() }, basis));
 
         for (thread& t : threads) if (t.joinable()) t.join();
 
@@ -163,7 +187,7 @@ int main(int argc, char** argv) {
         for (thread& t : threads) if (t.joinable()) t.join();
 
         if (save) {
-            sf::Image image({ (unsigned int)cam.width(), (unsigned int)cam.height() }, pixels.data());
+            sf::Image image({ (unsigned int)cam.width(), (unsigned int)cam.height()}, pixels.data());
             bool success = image.saveToFile(output_file);
             if (success) cout << "Successfully created " << output_file << '\n';
             else cout << "Failed to write image\n";

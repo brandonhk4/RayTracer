@@ -34,13 +34,9 @@ class cubemap {
             flag = true;
         }
 
-        ~cubemap() {
-            delete[] sides;
-        }
-
         explicit operator bool() const { return flag; }
 
-        vec3& value (const ray& r) const {
+        vec3 value (const ray& r) const {
             int axis = 0;
             const vec3& dir = r.dir();
             float big = std::fabs(dir.x);

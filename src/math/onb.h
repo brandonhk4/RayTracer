@@ -20,6 +20,9 @@ class onb {
             }
         }
 
+        onb (const vec3& u, const vec3& v, const vec3& w) :
+            u(u), v(v), w(w) {}
+
         vec3 transform(const vec3& n) const {
             return u * n.x + v * n.y + w * n.z;
         }
