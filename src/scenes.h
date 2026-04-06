@@ -471,7 +471,7 @@ pair<hittable_list, hittable_list> scene_mirror(config& cf) {
     cf.target = vec3();
 
     cf.background = vec3(0.5f);
-    cf.cmap = "images/cubemaps/cubemap_iceriver";
+    cf.cmap = "assets/cubemaps/cubemap_iceriver";
 
     return pair<hittable_list, hittable_list>(world, lights);
 }

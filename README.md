@@ -4,9 +4,13 @@ This will be a project that fully implements a Path Tracer from scratch, followi
 
 I will be updating this README as I add more features
 
+### Build Instructions
+cmake -B build
+cmake --build build (and then optionally --config Release for faster runtime)
+
 ### CLI configs:
 * -h / --help
-* --out (output file)
+* --out (output file to save rendered image)
 * --bvh (builds a bvh of the scene to decrease render time)
 * --display (creates a window that shows the image being) rendered, for now only confirmed to work with Windows
 * --scene (select from premade scenes 1-10)

@@ -22,8 +22,6 @@ sf::Image display(vector<uint8_t>& pixels, sf::Vector2u size, onb basis) {
     font.openFromFile("assets/Merriweather.ttf");
     sf::Text text(font);
     text.setCharacterSize(20);
-    text.setOutlineColor(sf::Color::White);
-    text.setOutlineThickness(0.1f);
     text.setPosition({0.0f, (float)(size.y)});
 
     // To prevent double clicks
