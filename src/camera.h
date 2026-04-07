@@ -222,6 +222,14 @@ class camera {
             forward = (target - pos).dir();
             right = cross(forward, vup.dir()).dir();
             up = cross(right, forward);
+
+            float h = tan(degrees_to_radians(vfov) / 2.0f);
+            float viewport_height = 2.0f * h * focus_dist;
+            float viewport_width = viewport_height * (float(image_width) / image_height);
+
+            forward = focus_dist * forward;
+            right = viewport_width * right;
+            up = viewport_height * up;
             return onb(right, up, forward);
         }
 };
