@@ -59,4 +59,5 @@ top-down BVH tree, threads, light importance sampling
 ![Improved Cornell box](renders/cornell_box_p2.png)
 ![Simple light](renders/simple_light.png)
 ![Bezier patch](renders/bezier_patch_p3.png)
+![Another Bezier patch](renders/bezier_patch_p4.png)
 ![Cubemap example](renders/cubemap.png)
