@@ -19,15 +19,15 @@ class mat4 {
             v[2] = vec4(d);
             v[3] = vec4(d);
         }
-        mat4(vec4 v0, vec4 v1, vec4 v2, vec4 v3) {
+        mat4(const vec4& v0, const vec4& v1, const vec4& v2, const vec4& v3) {
             v[0] = v0;
             v[1] = v1;
             v[2] = v2;
             v[3] = v3;
         }
-        mat4(float e0, float e1, float e2, float e3, 
-             float e4, float e5, float e6, float e7, 
-             float e8, float e9, float e10, float e11, 
+        mat4(float  e0, float  e1, float  e2, float  e3, 
+             float  e4, float  e5, float  e6, float  e7, 
+             float  e8, float  e9, float e10, float e11, 
              float e12, float e13, float e14, float e15)
         {
             e[0] = e0;

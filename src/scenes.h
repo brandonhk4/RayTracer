@@ -310,40 +310,6 @@ pair<hittable_list, hittable_list> cornell_smoke(config& cf) {
     return pair<hittable_list, hittable_list>(world, lights);
 }
 
-pair<hittable_list, hittable_list> test(config& cf) {
-    hittable_list world;
-    hittable_list lights;
-
-    auto reflect = make_shared<metal>(vec3(1.0f));
-    auto refract = make_shared<dielectric>(1.5f);
-    auto white = make_shared<lambertian>(vec3(.73f));
-
-    auto perlin_texture = make_shared<noise_texture>(4);
-    world.add(make_shared<sphere>(vec3(0.0f, -1000.0f, 0.0f), 1000.0f, make_shared<lambertian>(perlin_texture)));
-    // world.add(make_shared<sphere>(vec3(0.0f, 2.0f, 0.0f), 2.0f, reflect));
-    world.add(box(vec3(-2.0f, 0.0f, -2.0f), vec3(2.0f, 1.0f, 2.0f), refract));
-
-    auto light = make_shared<emissive>(vec3(4));
-    lights.add(make_shared<sphere>(vec3(0.0f, 7.0f, 0.0f), 2.0f, light));
-    world.add(lights);
-    // auto trans = make_shared<dielectric>(vec3(0.2, 0.6, 0.3), 1.5);
-    
-    world.add(make_shared<sphere>(vec3(0.0f, 7.0f, 0.0f), 2.0f, light));
-    // world.add(make_shared<sphere>(vec3(0, 7, 0), 2.3, trans));
-
-    cf.image_width = 1024;
-    cf.aa_samples = 50;
-    cf.max_depth = 16;
-    cf.tw = 256;
-    cf.th = 144;
-
-    cf.vfov = 20;
-    cf.pos = vec3(26, 3, 6);
-    cf.target = vec3(0, 2, 0);
-
-    return pair<hittable_list, hittable_list>(world, lights);
-}
-
 pair<hittable_list, hittable_list> final_scene(config& cf) {
     hittable_list world;
     hittable_list lights;
@@ -423,11 +389,12 @@ pair<hittable_list, hittable_list> bezier(config& cf) {
     hittable_list world;
     hittable_list lights;
 
+    //center
     mat4 x, y, z;
     for (int i = 0; i < 16; ++i) {
-        x.e[i] = (i % 4) * 4 - 2;
-        y.e[i] = std::sin(i) * 4;
-        z.e[i] = (i / 4) * 4 - 2;
+        x.e[i] = (i % 4) * 10 - 15;
+        y.e[i] = std::sin(i) * 10;
+        z.e[i] = (i / 4) * 10 - 15;
     }
     
     bezier_patch bp(x, y, z);
@@ -435,9 +402,39 @@ pair<hittable_list, hittable_list> bezier(config& cf) {
     auto white = make_shared<lambertian>(vec3(.73f));
     world.add(bp.tesselate(18, white));
 
-    auto light = make_shared<emissive>(vec3(4));
+    // //right
+    // for (int i = 0; i < 16; ++i) {
+    //     x.e[i] = (i % 4) * 10 + 15;
+    //     if (i % 4 == 0)
+    //         y.e[i] = y.e[i + 3];
+    //     else if (i % 4 == 1)
+    //         y.e[i] = -y.e[i + 1];
+    //     else 
+    //         y.e[i] = std::sin(i + 16) * 10;
+    //     z.e[i] = (i / 4) * 10 - 15;
+    // }
+
+    // bezier_patch bp1(x, y, z);
+    // world.add(bp1.tesselate(18, white));
+
+    // //left
+    // for (int i = 0; i < 16; ++i) {
+    //     x.e[i] = (i % 4) * 10 - 45;
+    //     if (i % 4 == 3)
+    //         y.e[i] = std::sin(i - 3) * 10;
+    //     else if (i % 4 == 2)
+    //         y.e[i] = -std::sin(i - 1) * 10;
+    //     else 
+    //         y.e[i] = std::sin(i - 16) * 10;
+    //     z.e[i] = (i / 4) * 10 - 15;
+    // }
+
+    // bezier_patch bp2(x, y, z);
+    // world.add(bp2.tesselate(18, white));
+
+    auto light = make_shared<emissive>(vec3(7));
     
-    lights.add(make_shared<sphere>(vec3(0.0f, 7.0f, 0.0f), 2.0f, light));
+    lights.add(make_shared<sphere>(vec3(0.0f, 4.0f, 0.0f), 2.0f, light));
     world.add(lights);
     
 
@@ -448,7 +445,7 @@ pair<hittable_list, hittable_list> bezier(config& cf) {
     cf.th          = 144;
 
     cf.vfov     = 20.0f;
-    cf.pos      = vec3(26.0f, 3.0f, 6.0f);
+    cf.pos      = vec3(-40.0f, 10.0f, 26.0f);
     cf.target   = vec3(0.0f, 2.0f, 0.0f);
 
     return pair<hittable_list, hittable_list>(world, lights);
@@ -467,11 +464,50 @@ pair<hittable_list, hittable_list> scene_mirror(config& cf) {
 
     cf.vfov = 20.0f;
     cf.pos = vec3(13.0f, 2.0f, 3.0f);
-    // cf.pos = vec3(-3.0f, 2.0f, 13.0f);
     cf.target = vec3();
 
     cf.background = vec3(0.5f);
     cf.cmap = "assets/cubemaps/cubemap_iceriver";
+
+    return pair<hittable_list, hittable_list>(world, lights);
+}
+
+pair<hittable_list, hittable_list> test(config& cf) {
+    hittable_list world;
+    hittable_list lights;
+
+    auto reflect = make_shared<metal>(vec3(1.0f));
+    auto refract = make_shared<dielectric>(1.5f);
+    auto white = make_shared<lambertian>(vec3(.73f));
+
+    auto perlin_texture = make_shared<noise_texture>(4);
+    world.add(make_shared<sphere>(vec3(0.0f, -1000.0f, 0.0f), 1000.0f, make_shared<lambertian>(perlin_texture)));
+    // world.add(make_shared<sphere>(vec3(0.0f, 2.0f, 0.0f), 2.0f, reflect));
+    // world.add(box(vec3(-2.0f, 0.0f, -2.0f), vec3(2.0f, 1.0f, 2.0f), refract));
+
+    auto light = make_shared<emissive>(vec3(4));
+    lights.add(make_shared<sphere>(vec3(0.0f, 7.0f, 0.0f), 2.0f, light));
+    world.add(lights);
+    // auto trans = make_shared<dielectric>(vec3(0.2, 0.6, 0.3), 1.5);
+    
+    // world.add(make_shared<sphere>(vec3(0.0f, 7.0f, 0.0f), 2.0f, light));
+    // world.add(make_shared<sphere>(vec3(0, 7, 0), 2.3, trans));
+
+    // auto white = make_shared<lambertian>(vec3(.73f));
+    world.add(make_shared<patch>(vec3(-2.0f, 1.5f, -2.0f), vec3(2.0f, 1.0f, -2.0f), vec3(-2.0f, 2.0f, 2.0f), vec3(2.0f, 0.5f, 2.0f),
+                                white));
+
+    cf.image_width = 1024;
+    cf.aa_samples = 50;
+    cf.max_depth = 16;
+    cf.tw = 256;
+    cf.th = 144;
+
+    cf.vfov = 20;
+    cf.pos = vec3(26, 3, 6);
+    cf.target = vec3(0, 2, 0);
+    // cf.pos = vec3(0, 3, 0);
+    // cf.target = vec3(0, 0, 0);
 
     return pair<hittable_list, hittable_list>(world, lights);
 }
